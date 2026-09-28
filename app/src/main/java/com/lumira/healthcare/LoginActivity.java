@@ -31,7 +31,7 @@ public class LoginActivity extends Activity {
         LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(32,70,32,32); root.setGravity(Gravity.CENTER_HORIZONTAL); root.setBackgroundColor(Color.WHITE);
         TextView brand = label("LUMIRA", 38, teal); brand.setTypeface(Typeface.DEFAULT_BOLD); root.addView(brand);
         root.addView(label("Healthcare Door to Door",18,Color.DKGRAY));
-        root.addView(label("Create your patient profile",22,Color.rgb(35,35,35));
+        root.addView(label("Create your patient profile",22,Color.rgb(35,35,35)));
         name = field("Full name", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         phone = field("Phone number", InputType.TYPE_CLASS_PHONE);
         email = field("Email (optional)", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
