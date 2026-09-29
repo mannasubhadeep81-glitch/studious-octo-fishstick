@@ -1,16 +1,15 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AI Developer Workspace</title>
 <style>
-body{margin:0;font-family:system-ui;background:#0b1020;color:#fff}main{max-width:900px;margin:auto;padding:20px}section{background:#151c33;border:1px solid #2b3555;border-radius:18px;padding:18px;margin:14px 0}textarea,input{width:100%;box-sizing:border-box;background:#0d1428;color:#fff;border:1px solid #334064;border-radius:12px;padding:12px}textarea{min-height:110px}button{margin-top:12px;padding:12px 18px;border:0;border-radius:10px;background:#fff;color:#111;font-weight:700}#game{display:none;text-align:center}.dot{font-size:48px}pre{white-space:pre-wrap;overflow:auto}.muted{opacity:.75;font-size:14px}.status{font-weight:700}
+body{margin:0;font-family:system-ui;background:#0b1020;color:#fff}main{max-width:900px;margin:auto;padding:20px}section{background:#151c33;border:1px solid #2b3555;border-radius:18px;padding:18px;margin:14px 0}textarea,input{width:100%;box-sizing:border-box;background:#0d1428;color:#fff;border:1px solid #334064;border-radius:12px;padding:12px}textarea{min-height:110px}button{margin-top:12px;margin-right:8px;padding:12px 18px;border:0;border-radius:10px;background:#fff;color:#111;font-weight:700}button.secondary{background:#334064;color:#fff}#game{display:none;text-align:center}.dot{font-size:48px}pre{white-space:pre-wrap;overflow:auto}.muted{opacity:.75;font-size:14px}.status{font-weight:700}
 </style>
 </head>
 <body><main>
 <h1>AI Developer Workspace</h1>
-<p>Instruction → AI Plan → Project → Build/Test → Report</p>
+<p>Instruction → AI Plan → Project → Build/Test → Error Analysis → Report</p>
 <section>
 <h2>Connection</h2>
 <input id="backend" placeholder="Backend URL, e.g. https://your-backend.example.com">
@@ -19,7 +18,8 @@ body{margin:0;font-family:system-ui;background:#0b1020;color:#fff}main{max-width
 <section>
 <h2>Instruction</h2>
 <textarea id="prompt" placeholder="Tell the AI what to build or change..."></textarea>
-<button onclick="run()">Generate / Run</button>
+<button onclick="runPlan()">Generate / Run</button>
+<button class="secondary" onclick="buildAndAnalyze()">Build / Test + Analyze</button>
 <p class="status" id="status">Ready</p>
 </section>
 <section id="game"><h2>Mini Game</h2><div class="dot">🚀</div><p>AI কাজ করছে… স্কোর করতে tap করো।</p><button onclick="score()">+1</button><p>Score: <b id="score">0</b></p></section>
@@ -29,27 +29,16 @@ body{margin:0;font-family:system-ui;background:#0b1020;color:#fff}main{max-width
 let s=0;
 function score(){document.getElementById('score').textContent=++s}
 function setStatus(t){document.getElementById('status').textContent=t}
-async function run(){
- const p=document.getElementById('prompt').value.trim();
- const base=document.getElementById('backend').value.trim().replace(/\/$/,'');
- if(!p){setStatus('Enter an instruction first.');return}
- document.getElementById('game').style.display='block';
- document.getElementById('result').textContent='Sending instruction to the AI planning layer…';
- setStatus('Processing');
- if(!base){
-   setTimeout(()=>{document.getElementById('game').style.display='none';document.getElementById('result').textContent='Backend URL not configured. The UI is ready; add your deployed backend URL to enable live AI planning.';setStatus('Backend required');},900);
-   return;
- }
- try{
-   const r=await fetch(base+'/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({instruction:p})});
-   const data=await r.json();
-   if(!r.ok||!data.ok) throw new Error(data.error||'Backend request failed');
-   document.getElementById('result').textContent=data.plan||'AI returned an empty plan.';
-   setStatus('Completed');
- }catch(e){
-   document.getElementById('result').textContent='Connection error: '+e.message;
-   setStatus('Error');
- }finally{document.getElementById('game').style.display='none'}
+function getConnection(){const p=document.getElementById('prompt').value.trim();const base=document.getElementById('backend').value.trim().replace(/\/$/,'');if(!p){setStatus('Enter an instruction first.');return null}if(!base){setStatus('Backend required');document.getElementById('result').textContent='Add your deployed backend URL first.';return null}return {p,base}}
+async function runPlan(){
+ const c=getConnection();if(!c)return;
+ document.getElementById('game').style.display='block';document.getElementById('result').textContent='Sending instruction to AI planning layer…';setStatus('Planning');
+ try{const r=await fetch(c.base+'/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({instruction:c.p})});const data=await r.json();if(!r.ok||!data.ok)throw new Error(data.error||'Backend request failed');document.getElementById('result').textContent=data.plan||'AI returned an empty plan.';setStatus('Plan completed')}catch(e){document.getElementById('result').textContent='Connection error: '+e.message;setStatus('Error')}finally{document.getElementById('game').style.display='none'}
+}
+async function buildAndAnalyze(){
+ const c=getConnection();if(!c)return;
+ document.getElementById('game').style.display='block';document.getElementById('result').textContent='Running controlled build/test…';setStatus('Build/Test');
+ try{const r=await fetch(c.base+'/api/build-and-analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({instruction:c.p})});const data=await r.json();if(data.ok){document.getElementById('result').textContent='BUILD PASSED\n\n'+(data.build.stdout||'No test output.');setStatus('Build passed')}else{document.getElementById('result').textContent='BUILD FAILED\n\n'+(data.build?.stderr||data.build?.stdout||'No build log.')+'\n\nAI ERROR ANALYSIS\n'+(data.analysis||'No analysis returned.');setStatus('Error analyzed')}}catch(e){document.getElementById('result').textContent='Connection error: '+e.message;setStatus('Error')}finally{document.getElementById('game').style.display='none'}
 }
 </script>
 </body></html>
