@@ -8,9 +8,9 @@ services:
     envVars:
       - key: OPENAI_API_KEY
         sync: false
+      - key: WORKSPACE_API_TOKEN
+        sync: false
       - key: OPENAI_MODEL
         value: gpt-5.6
       - key: WORKSPACE_ROOT
         value: ./workspace
-      - key: BUILD_COMMAND
-        value: npm test
