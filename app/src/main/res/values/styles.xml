@@ -1,9 +1,20 @@
 <resources>
     <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
-        <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">#16A085</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:windowBackground">#F6F5FF</item>
+        <item name="android:colorAccent">#6C5CE7</item>
         <item name="android:navigationBarColor">#FFFFFF</item>
-        <item name="android:statusBarColor">#FFFFFF</item>
+        <item name="android:statusBarColor">#F6F5FF</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowAnimationStyle">@style/LumiraWindowAnimation</item>
+    </style>
+
+    <style name="LumiraWindowAnimation">
+        <item name="android:activityOpenEnterAnimation">@anim/lumira_fade_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/lumira_fade_out</item>
+        <item name="android:activityCloseEnterAnimation">@anim/lumira_fade_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/lumira_fade_out</item>
     </style>
 </resources>
