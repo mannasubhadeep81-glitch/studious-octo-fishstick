@@ -7,9 +7,11 @@ import { spawn } from 'node:child_process';
 
 const app = express();
 const API_TOKEN = process.env.WORKSPACE_API_TOKEN;
+const APP_ROOT = path.resolve(process.cwd(), '..');
 
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: '1mb' }));
+app.use(express.static(APP_ROOT, { index: false }));
 
 function requireAuth(req, res, next) {
   if (!API_TOKEN) return res.status(503).json({ ok: false, error: 'WORKSPACE_API_TOKEN is not configured' });
@@ -67,6 +69,7 @@ async function analyzeError(instruction, errorLog) {
 }
 
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'ai-developer-workspace' }));
+app.get('/', (_req, res) => res.sendFile(path.join(APP_ROOT, 'index.html')));
 
 app.post('/api/plan', requireAuth, async (req, res) => {
   try {
