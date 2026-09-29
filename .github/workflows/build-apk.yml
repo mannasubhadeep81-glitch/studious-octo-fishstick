@@ -24,6 +24,7 @@ jobs:
           unzip -q /tmp/gradle.zip -d /tmp
           echo "/tmp/gradle-8.7/bin" >> "$GITHUB_PATH"
 
+      # Build the current main branch, including the latest LUMIRA fixes.
       - name: Build Debug APK
         run: gradle --no-daemon assembleDebug
 
