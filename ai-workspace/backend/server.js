@@ -45,6 +45,18 @@ function runCommand(command, cwd, timeoutMs = 120000) {
   });
 }
 
+async function analyzeError(instruction, errorLog) {
+  const client = getClient();
+  const response = await client.responses.create({
+    model: process.env.OPENAI_MODEL || 'gpt-5.6',
+    input: [
+      { role: 'system', content: 'You are an error-analysis layer for a controlled software workspace. Return concise JSON with diagnosis, likelyFiles, patchPlan, and verificationSteps. Do not claim to have applied a fix.' },
+      { role: 'user', content: JSON.stringify({ instruction, errorLog }) }
+    ]
+  });
+  return response.output_text;
+}
+
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'ai-developer-workspace' }));
 
 app.post('/api/plan', async (req, res) => {
@@ -103,17 +115,25 @@ app.post('/api/fix', async (req, res) => {
     const instruction = String(req.body?.instruction || '').trim();
     const errorLog = String(req.body?.errorLog || '').trim();
     if (!errorLog) return res.status(400).json({ error: 'errorLog is required' });
-    const client = getClient();
-    const response = await client.responses.create({
-      model: process.env.OPENAI_MODEL || 'gpt-5.6',
-      input: [
-        { role: 'system', content: 'You are an error-analysis layer for a controlled software workspace. Analyze the build/test failure and return JSON with diagnosis, likelyFiles, patchPlan, and verificationSteps. Do not claim to have applied a fix.' },
-        { role: 'user', content: JSON.stringify({ instruction, errorLog }) }
-      ]
-    });
-    res.json({ ok: true, analysis: response.output_text });
+    const analysis = await analyzeError(instruction, errorLog);
+    res.json({ ok: true, analysis });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message || 'Fix analysis failed' });
+  }
+});
+
+app.post('/api/build-and-analyze', async (req, res) => {
+  try {
+    const instruction = String(req.body?.instruction || '').trim();
+    const build = await runCommand(BUILD_COMMAND, WORKSPACE_ROOT);
+    if (build.ok) {
+      return res.json({ ok: true, stage: 'build', build, analysis: null });
+    }
+    const errorLog = [build.stdout, build.stderr].filter(Boolean).join('\n').slice(-20000);
+    const analysis = await analyzeError(instruction, errorLog);
+    res.status(422).json({ ok: false, stage: 'analysis', build, analysis });
+  } catch (error) {
+    res.status(500).json({ ok: false, stage: 'server', error: error.message || 'Build/analyze workflow failed' });
   }
 });
 
