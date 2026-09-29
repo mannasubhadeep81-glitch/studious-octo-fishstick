@@ -24,6 +24,8 @@ public class LocationActivity extends Activity {
     private static final int NAVY=Color.rgb(24,39,70), INK=Color.rgb(22,37,66), PURPLE=Color.rgb(92,79,214), CORAL=Color.rgb(255,112,102), BG=Color.rgb(247,248,252), MUTED=Color.rgb(112,123,147);
     private TextView status;
     private LocationManager locationManager;
+    private LocationListener activeListener;
+    private boolean locationResolved;
 
     private int dp(int v){return (int)(v*getResources().getDisplayMetrics().density+.5f);}
     private GradientDrawable bg(int c,int r){GradientDrawable d=new GradientDrawable();d.setColor(c);d.setCornerRadius(dp(r));return d;}
@@ -70,6 +72,8 @@ public class LocationActivity extends Activity {
 
     private void getFreshLocation(){
         if(!hasLocationPermission()) return;
+        stopLocationUpdates();
+        locationResolved=false;
         try{
             boolean gps=locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
             boolean network=locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
@@ -79,34 +83,49 @@ public class LocationActivity extends Activity {
                 return;
             }
             status.setText("Finding your current GPS location…");
-            final LocationListener listener=new LocationListener(){
+            activeListener=new LocationListener(){
                 @Override public void onLocationChanged(Location location){
-                    try{locationManager.removeUpdates(this);}catch(Exception ignored){}
+                    if(locationResolved)return;
+                    locationResolved=true;
+                    stopLocationUpdates();
                     showLocationOnMaps(location);
                 }
                 @Override public void onProviderDisabled(String provider){}
                 @Override public void onProviderEnabled(String provider){}
                 @Override public void onStatusChanged(String provider,int status,Bundle extras){}
             };
-            if(gps) locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1000L,1f,listener);
-            if(network) locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,1000L,1f,listener);
+            if(gps) locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1000L,1f,activeListener);
+            if(network) locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,1000L,1f,activeListener);
+            final LocationListener listener=activeListener;
             new android.os.Handler().postDelayed(()->{
-                try{locationManager.removeUpdates(listener);}catch(Exception ignored){}
-                openMapsFromLastLocation();
+                if(locationResolved || listener!=activeListener)return;
+                Location best=getLastKnownLocation();
+                stopLocationUpdates();
+                if(best!=null)showLocationOnMaps(best);else status.setText("No recent location found. Tap ‘Allow location & find me’ to try again.");
             },12000L);
         }catch(Exception e){
+            stopLocationUpdates();
             status.setText("Could not access GPS. Please try again.");
         }
     }
 
-    private void openMapsFromLastLocation(){
-        if(!hasLocationPermission()) return;
+    private Location getLastKnownLocation(){
         Location best=null;
+        if(!hasLocationPermission())return null;
         try{
             for(String provider:new String[]{LocationManager.GPS_PROVIDER,LocationManager.NETWORK_PROVIDER}){
-                try{Location l=locationManager.getLastKnownLocation(provider);if(l!=null && (best==null || l.getTime()>best.getTime()))best=l;}catch(Exception ignored){}
+                try{Location l=locationManager.getLastKnownLocation(provider);if(l!=null && (best==null || l.getTime()>best.getTime()))best=l;}catch(SecurityException ignored){}catch(Exception ignored){}
             }
         }catch(Exception ignored){}
+        return best;
+    }
+
+    private void openMapsFromLastLocation(){
+        if(!hasLocationPermission()){
+            requestOrGetFreshLocation();
+            return;
+        }
+        Location best=getLastKnownLocation();
         if(best!=null) showLocationOnMaps(best);
         else status.setText("No recent location found. Tap ‘Allow location & find me’ to get a fresh position.");
     }
@@ -122,8 +141,15 @@ public class LocationActivity extends Activity {
         }
     }
 
+    private void stopLocationUpdates(){
+        if(locationManager!=null && activeListener!=null){
+            try{locationManager.removeUpdates(activeListener);}catch(Exception ignored){}
+            activeListener=null;
+        }
+    }
+
     @Override protected void onDestroy(){
+        stopLocationUpdates();
         super.onDestroy();
-        try{locationManager.removeUpdates(new LocationListener(){@Override public void onLocationChanged(Location location){} @Override public void onProviderDisabled(String provider){} @Override public void onProviderEnabled(String provider){} @Override public void onStatusChanged(String provider,int status,Bundle extras){}});}catch(Exception ignored){}
     }
 }
