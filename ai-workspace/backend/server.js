@@ -6,11 +6,20 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 
 const app = express();
-app.use(cors());
+const API_TOKEN = process.env.WORKSPACE_API_TOKEN;
+
+app.use(cors({ origin: true }));
 app.use(express.json({ limit: '1mb' }));
 
+function requireAuth(req, res, next) {
+  if (!API_TOKEN) return res.status(503).json({ ok: false, error: 'WORKSPACE_API_TOKEN is not configured' });
+  const auth = req.headers.authorization || '';
+  if (auth !== `Bearer ${API_TOKEN}`) return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  next();
+}
+
 const WORKSPACE_ROOT = path.resolve(process.env.WORKSPACE_ROOT || './workspace');
-const BUILD_COMMAND = process.env.BUILD_COMMAND || 'npm test';
+const BUILD_COMMAND = 'npm test';
 
 function getClient() {
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not configured');
@@ -59,7 +68,7 @@ async function analyzeError(instruction, errorLog) {
 
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'ai-developer-workspace' }));
 
-app.post('/api/plan', async (req, res) => {
+app.post('/api/plan', requireAuth, async (req, res) => {
   try {
     const instruction = String(req.body?.instruction || '').trim();
     if (!instruction) return res.status(400).json({ error: 'instruction is required' });
@@ -77,7 +86,7 @@ app.post('/api/plan', async (req, res) => {
   }
 });
 
-app.post('/api/workspace/read', async (req, res) => {
+app.post('/api/workspace/read', requireAuth, async (req, res) => {
   try {
     const file = safePath(String(req.body?.path || ''));
     const content = await fs.readFile(file, 'utf8');
@@ -87,7 +96,7 @@ app.post('/api/workspace/read', async (req, res) => {
   }
 });
 
-app.post('/api/workspace/write', async (req, res) => {
+app.post('/api/workspace/write', requireAuth, async (req, res) => {
   try {
     const relativePath = String(req.body?.path || '').trim();
     const content = String(req.body?.content ?? '');
@@ -101,7 +110,7 @@ app.post('/api/workspace/write', async (req, res) => {
   }
 });
 
-app.post('/api/build', async (_req, res) => {
+app.post('/api/build', requireAuth, async (_req, res) => {
   try {
     const result = await runCommand(BUILD_COMMAND, WORKSPACE_ROOT);
     res.status(result.ok ? 200 : 422).json({ ok: result.ok, command: BUILD_COMMAND, ...result });
@@ -110,7 +119,7 @@ app.post('/api/build', async (_req, res) => {
   }
 });
 
-app.post('/api/fix', async (req, res) => {
+app.post('/api/fix', requireAuth, async (req, res) => {
   try {
     const instruction = String(req.body?.instruction || '').trim();
     const errorLog = String(req.body?.errorLog || '').trim();
@@ -122,13 +131,11 @@ app.post('/api/fix', async (req, res) => {
   }
 });
 
-app.post('/api/build-and-analyze', async (req, res) => {
+app.post('/api/build-and-analyze', requireAuth, async (req, res) => {
   try {
     const instruction = String(req.body?.instruction || '').trim();
     const build = await runCommand(BUILD_COMMAND, WORKSPACE_ROOT);
-    if (build.ok) {
-      return res.json({ ok: true, stage: 'build', build, analysis: null });
-    }
+    if (build.ok) return res.json({ ok: true, stage: 'build', build, analysis: null });
     const errorLog = [build.stdout, build.stderr].filter(Boolean).join('\n').slice(-20000);
     const analysis = await analyzeError(instruction, errorLog);
     res.status(422).json({ ok: false, stage: 'analysis', build, analysis });
