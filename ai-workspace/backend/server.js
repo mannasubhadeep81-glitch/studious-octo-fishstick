@@ -3,12 +3,14 @@ import cors from 'cors';
 import OpenAI from 'openai';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { spawn } from 'node:child_process';
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
 const WORKSPACE_ROOT = path.resolve(process.env.WORKSPACE_ROOT || './workspace');
+const BUILD_COMMAND = process.env.BUILD_COMMAND || 'npm test';
 
 function getClient() {
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not configured');
@@ -21,6 +23,26 @@ function safePath(relativePath) {
     throw new Error('Path is outside the allowed workspace');
   }
   return target;
+}
+
+function runCommand(command, cwd, timeoutMs = 120000) {
+  return new Promise((resolve) => {
+    const child = spawn(command, { cwd, shell: true, env: process.env });
+    let stdout = '';
+    let stderr = '';
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; child.kill('SIGTERM'); }, timeoutMs);
+    child.stdout.on('data', (d) => { stdout += d.toString(); });
+    child.stderr.on('data', (d) => { stderr += d.toString(); });
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      resolve({ ok: !timedOut && code === 0, code, timedOut, stdout, stderr });
+    });
+    child.on('error', (error) => {
+      clearTimeout(timer);
+      resolve({ ok: false, code: null, timedOut, stdout, stderr: `${stderr}\n${error.message}`.trim() });
+    });
+  });
 }
 
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'ai-developer-workspace' }));
@@ -64,6 +86,34 @@ app.post('/api/workspace/write', async (req, res) => {
     res.json({ ok: true, path: relativePath });
   } catch (error) {
     res.status(400).json({ ok: false, error: error.message || 'Write failed' });
+  }
+});
+
+app.post('/api/build', async (_req, res) => {
+  try {
+    const result = await runCommand(BUILD_COMMAND, WORKSPACE_ROOT);
+    res.status(result.ok ? 200 : 422).json({ ok: result.ok, command: BUILD_COMMAND, ...result });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message || 'Build failed' });
+  }
+});
+
+app.post('/api/fix', async (req, res) => {
+  try {
+    const instruction = String(req.body?.instruction || '').trim();
+    const errorLog = String(req.body?.errorLog || '').trim();
+    if (!errorLog) return res.status(400).json({ error: 'errorLog is required' });
+    const client = getClient();
+    const response = await client.responses.create({
+      model: process.env.OPENAI_MODEL || 'gpt-5.6',
+      input: [
+        { role: 'system', content: 'You are an error-analysis layer for a controlled software workspace. Analyze the build/test failure and return JSON with diagnosis, likelyFiles, patchPlan, and verificationSteps. Do not claim to have applied a fix.' },
+        { role: 'user', content: JSON.stringify({ instruction, errorLog }) }
+      ]
+    });
+    res.json({ ok: true, analysis: response.output_text });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message || 'Fix analysis failed' });
   }
 });
 
