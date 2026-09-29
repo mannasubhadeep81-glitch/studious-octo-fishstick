@@ -4,41 +4,26 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AI Developer Workspace</title>
 <style>
-body{margin:0;font-family:system-ui;background:#0b1020;color:#fff}main{max-width:900px;margin:auto;padding:20px}section{background:#151c33;border:1px solid #2b3555;border-radius:18px;padding:18px;margin:14px 0}textarea,input{width:100%;box-sizing:border-box;background:#0d1428;color:#fff;border:1px solid #334064;border-radius:12px;padding:12px}textarea{min-height:110px}button{margin-top:12px;margin-right:8px;padding:12px 18px;border:0;border-radius:10px;background:#fff;color:#111;font-weight:700}button.secondary{background:#334064;color:#fff}#game{display:none;text-align:center}.dot{font-size:48px}pre{white-space:pre-wrap;overflow:auto}.muted{opacity:.75;font-size:14px}.status{font-weight:700}
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:#0b1020;color:#eef2ff}main{max-width:980px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.badge{padding:6px 10px;border-radius:999px;background:#17213a;color:#9fb3d9;font-size:12px}section{background:#111a2e;border:1px solid #293653;border-radius:16px;padding:18px;margin:14px 0}input,textarea{width:100%;box-sizing:border-box;background:#0a1121;color:#fff;border:1px solid #334263;border-radius:10px;padding:12px}textarea{min-height:120px;resize:vertical}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.row{display:flex;gap:10px;flex-wrap:wrap}button{padding:11px 16px;border:0;border-radius:10px;background:#eef2ff;color:#111;font-weight:700;cursor:pointer}button.secondary{background:#334263;color:#fff}.muted{opacity:.72;font-size:13px}.status{font-weight:700;margin-top:12px}pre{white-space:pre-wrap;overflow:auto;min-height:130px;background:#09101e;border-radius:10px;padding:14px}@media(max-width:700px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body><main>
-<h1>AI Developer Workspace</h1>
-<p>Instruction → AI Plan → Project → Build/Test → Error Analysis → Report</p>
-<section>
-<h2>Connection</h2>
-<input id="backend" placeholder="Backend URL, e.g. https://your-backend.example.com">
-<p class="muted">Keep the OpenAI API key on the backend. Never paste the key here.</p>
-</section>
-<section>
-<h2>Instruction</h2>
-<textarea id="prompt" placeholder="Tell the AI what to build or change..."></textarea>
-<button onclick="runPlan()">Generate / Run</button>
-<button class="secondary" onclick="buildAndAnalyze()">Build / Test + Analyze</button>
-<p class="status" id="status">Ready</p>
-</section>
-<section id="game"><h2>Mini Game</h2><div class="dot">🚀</div><p>AI কাজ করছে… স্কোর করতে tap করো।</p><button onclick="score()">+1</button><p>Score: <b id="score">0</b></p></section>
+<div class="top"><div><h1>⚡ AI Developer Workspace</h1><p class="muted">Plan → Workspace → Build/Test → Error Analysis</p></div><div class="badge">Render-ready</div></div>
+<section><h2>Connection</h2><div class="grid"><input id="backend" placeholder="Backend URL (leave blank when using Render app URL)"><input id="token" type="password" placeholder="WORKSPACE_API_TOKEN"></div><p class="muted">Your OpenAI API key stays on the backend. Never paste the OpenAI key here. The workspace token is stored only in this browser.</p></section>
+<section><h2>Instruction</h2><textarea id="prompt" placeholder="Tell the AI what to build, inspect, or fix..."></textarea><div class="row"><button onclick="runPlan()">🧠 Generate Plan</button><button class="secondary" onclick="buildAndAnalyze()">▶ Build/Test + Analyze</button></div><div class="status" id="status">Ready</div></section>
 <section><h2>Result</h2><pre id="result">Waiting for an instruction.</pre></section>
 </main>
 <script>
-let s=0;
-function score(){document.getElementById('score').textContent=++s}
-function setStatus(t){document.getElementById('status').textContent=t}
-function getConnection(){const p=document.getElementById('prompt').value.trim();const base=document.getElementById('backend').value.trim().replace(/\/$/,'');if(!p){setStatus('Enter an instruction first.');return null}if(!base){setStatus('Backend required');document.getElementById('result').textContent='Add your deployed backend URL first.';return null}return {p,base}}
-async function runPlan(){
- const c=getConnection();if(!c)return;
- document.getElementById('game').style.display='block';document.getElementById('result').textContent='Sending instruction to AI planning layer…';setStatus('Planning');
- try{const r=await fetch(c.base+'/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({instruction:c.p})});const data=await r.json();if(!r.ok||!data.ok)throw new Error(data.error||'Backend request failed');document.getElementById('result').textContent=data.plan||'AI returned an empty plan.';setStatus('Plan completed')}catch(e){document.getElementById('result').textContent='Connection error: '+e.message;setStatus('Error')}finally{document.getElementById('game').style.display='none'}
-}
-async function buildAndAnalyze(){
- const c=getConnection();if(!c)return;
- document.getElementById('game').style.display='block';document.getElementById('result').textContent='Running controlled build/test…';setStatus('Build/Test');
- try{const r=await fetch(c.base+'/api/build-and-analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({instruction:c.p})});const data=await r.json();if(data.ok){document.getElementById('result').textContent='BUILD PASSED\n\n'+(data.build.stdout||'No test output.');setStatus('Build passed')}else{document.getElementById('result').textContent='BUILD FAILED\n\n'+(data.build?.stderr||data.build?.stdout||'No build log.')+'\n\nAI ERROR ANALYSIS\n'+(data.analysis||'No analysis returned.');setStatus('Error analyzed')}}catch(e){document.getElementById('result').textContent='Connection error: '+e.message;setStatus('Error')}finally{document.getElementById('game').style.display='none'}
-}
+const $=id=>document.getElementById(id);
+const savedBase=localStorage.getItem('AI_WORKSPACE_BACKEND_URL')||location.origin;
+$('backend').value=savedBase;
+$('token').value=localStorage.getItem('AI_WORKSPACE_TOKEN')||'';
+$('backend').addEventListener('change',e=>localStorage.setItem('AI_WORKSPACE_BACKEND_URL',e.target.value.trim().replace(/\/$/,'')));
+$('token').addEventListener('change',e=>localStorage.setItem('AI_WORKSPACE_TOKEN',e.target.value.trim()));
+function setStatus(t){$('status').textContent=t}
+function connection(){const p=$('prompt').value.trim(),base=$('backend').value.trim().replace(/\/$/,''),token=$('token').value.trim();if(!p){setStatus('Enter an instruction first.');return null}if(!base){setStatus('Backend URL required.');return null}if(!token){setStatus('Workspace token required.');return null}return{p,base,token}}
+async function call(path,body){const c=connection();if(!c)return;setStatus('Running…');$('result').textContent='Working…';try{const r=await fetch(c.base+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.token},body:JSON.stringify(body)});const text=await r.text();let data;try{data=JSON.parse(text)}catch{data={error:text}}if(!r.ok)throw new Error(data.error||'HTTP '+r.status);return data}catch(e){$('result').textContent='Error: '+e.message;setStatus('Failed');return null}}
+async function runPlan(){const c=connection();if(!c)return;const data=await call('/api/plan',{instruction:c.p});if(data){$('result').textContent=data.plan||JSON.stringify(data,null,2);setStatus('Plan completed')}}
+async function buildAndAnalyze(){const c=connection();if(!c)return;const data=await call('/api/build-and-analyze',{instruction:c.p});if(data){if(data.ok){$('result').textContent='BUILD PASSED\n\n'+(data.build?.stdout||'No test output.');setStatus('Build passed')}else{$('result').textContent='BUILD FAILED\n\n'+(data.build?.stderr||data.build?.stdout||'No build log.')+'\n\nAI ERROR ANALYSIS\n'+(data.analysis||'No analysis returned.');setStatus('Error analyzed')}}}
 </script>
 </body></html>
