@@ -7,140 +7,47 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
-    private static final int NAVY = Color.rgb(25, 40, 72);
-    private static final int INK = Color.rgb(24, 39, 68);
-    private static final int PURPLE = Color.rgb(91, 78, 214);
-    private static final int CORAL = Color.rgb(255, 112, 102);
-    private static final int BG = Color.rgb(247, 248, 252);
-    private LinearLayout content;
-    private LinearLayout screen;
+    private static final int NAVY=Color.rgb(24,39,70), INK=Color.rgb(22,37,66), PURPLE=Color.rgb(92,79,214), CORAL=Color.rgb(255,112,102), BG=Color.rgb(247,248,252), MUTED=Color.rgb(112,123,147);
+    private LinearLayout content, screen;
     private UserProfile user;
 
-    @Override public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        user = new SessionManager(this).getUser();
-        showHome();
+    @Override public void onCreate(Bundle savedInstanceState){super.onCreate(savedInstanceState);user=new SessionManager(this).getUser();showHome();}
+    private int dp(int v){return(int)(v*getResources().getDisplayMetrics().density+.5f);}
+    private GradientDrawable bg(int color,int radius){GradientDrawable d=new GradientDrawable();d.setColor(color);d.setCornerRadius(dp(radius));return d;}
+    private GradientDrawable outline(int fill,int stroke,int width,int radius){GradientDrawable d=bg(fill,radius);d.setStroke(dp(width),stroke);return d;}
+    private TextView txt(String s,float size,int color,boolean bold){TextView t=new TextView(this);t.setText(s);t.setTextSize(size);t.setTextColor(color);if(bold)t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);return t;}
+    private LinearLayout.LayoutParams lp(int l,int t,int r,int b){LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.setMargins(dp(l),dp(t),dp(r),dp(b));return p;}
+    private LinearLayout.LayoutParams half(int right){LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,-2,1);p.setMargins(0,0,dp(right),0);return p;}
+    private LinearLayout card(){LinearLayout c=new LinearLayout(this);c.setOrientation(LinearLayout.VERTICAL);c.setPadding(dp(18),dp(16),dp(18),dp(16));c.setBackground(outline(Color.WHITE,Color.rgb(232,234,241),1,22));c.setElevation(dp(2));return c;}
+    private TextView pill(String s){TextView p=txt(s,12,Color.rgb(42,137,109),true);p.setGravity(Gravity.CENTER);p.setPadding(dp(11),dp(6),dp(11),dp(6));p.setBackground(bg(Color.rgb(226,247,239),18));return p;}
+    private TextView iconBox(String icon,int color,int fill){TextView v=txt(icon,21,color,true);v.setGravity(Gravity.CENTER);v.setBackground(bg(fill,15));return v;}
+    private void setup(){screen=new LinearLayout(this);screen.setOrientation(LinearLayout.VERTICAL);screen.setBackgroundColor(BG);ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);content=new LinearLayout(this);content.setOrientation(LinearLayout.VERTICAL);content.setPadding(dp(18),dp(14),dp(18),dp(24));scroll.addView(content);screen.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));}
+
+    private void showHome(){
+        setup();
+        String name=user.getName().isEmpty()?"there":user.getName();
+        LinearLayout header=new LinearLayout(this);header.setGravity(Gravity.CENTER_VERTICAL);TextView h=txt("THURSDAY, SEPTEMBER 29\nGood morning, "+name,12,MUTED,true);h.setLineSpacing(0,1.05f);header.addView(h,new LinearLayout.LayoutParams(0,-2,1));TextView av=txt(initials(name),15,Color.WHITE,true);av.setGravity(Gravity.CENTER);av.setBackground(bg(NAVY,30));header.addView(av,new LinearLayout.LayoutParams(dp(48),dp(48)));content.addView(header,lp(0,3,0,12));
+        LinearLayout location=card();location.setOrientation(LinearLayout.HORIZONTAL);location.addView(iconBox("⌖",PURPLE,Color.rgb(242,240,255)),new LinearLayout.LayoutParams(dp(44),dp(44)));LinearLayout lt=new LinearLayout(this);lt.setOrientation(LinearLayout.VERTICAL);lt.addView(txt("Share your live location",16,INK,true));lt.addView(txt("Help us find the nearest available care",12,MUTED,false),lp(0,3,0,0));location.addView(lt,new LinearLayout.LayoutParams(0,-2,1));location.addView(txt("›",27,MUTED,false));location.setOnClickListener(v->toast("Location sharing will connect to the care backend."));content.addView(location,lp(0,0,0,12));
+        LinearLayout hero=new LinearLayout(this);hero.setOrientation(LinearLayout.VERTICAL);hero.setPadding(dp(22),dp(22),dp(22),dp(18));hero.setBackground(bg(NAVY,28));hero.setElevation(dp(3));LinearLayout ht=new LinearLayout(this);ht.setGravity(Gravity.CENTER_VERTICAL);ht.addView(txt("Need medical help now?",23,Color.WHITE,true),new LinearLayout.LayoutParams(0,-2,1));ht.addView(txt("♡",29,Color.rgb(255,139,130),false));hero.addView(ht);hero.addView(txt("A verified doctor can reach you at home in minutes.",14,Color.rgb(220,228,242),false),lp(0,7,0,15));TextView e=txt("Request emergency doctor",16,Color.WHITE,true);e.setGravity(Gravity.CENTER);e.setPadding(0,dp(15),0,dp(15));e.setBackground(bg(CORAL,18));e.setOnClickListener(v->openFeature("Emergency"));hero.addView(e);TextView a=txt("▱  Request an ambulance instead",14,Color.rgb(255,184,178),true);a.setGravity(Gravity.CENTER);a.setPadding(0,dp(13),0,0);a.setOnClickListener(v->openFeature("Emergency"));hero.addView(a);content.addView(hero,lp(0,0,0,14));
+        content.addView(txt("How can we help?",23,INK,true),lp(0,3,0,6));LinearLayout r1=new LinearLayout(this);r1.addView(service("♙","Home visit","Care at your doorstep","Home Healthcare",Color.rgb(242,240,255),PURPLE),half(8));r1.addView(service("▣","Medicines","Order from pharmacy","Pharmacy",Color.rgb(231,247,252),Color.rgb(50,139,174)),half(0));content.addView(r1);LinearLayout r2=new LinearLayout(this);r2.addView(service("▱","Ambulance","Emergency transport","Emergency",Color.rgb(255,239,237),CORAL),half(8));r2.addView(service("▤","Records","Your health history","Records",Color.rgb(243,237,255),Color.rgb(125,90,190)),half(0));content.addView(r2);
+        LinearLayout visit=card();LinearLayout vt=new LinearLayout(this);vt.setGravity(Gravity.CENTER_VERTICAL);vt.addView(txt("UPCOMING VISIT",11,MUTED,true),new LinearLayout.LayoutParams(0,-2,1));vt.addView(pill("●  Confirmed"));visit.addView(vt);visit.addView(txt("Tomorrow, 10:30 AM",20,INK,true),lp(0,8,0,7));LinearLayout doctor=new LinearLayout(this);doctor.setGravity(Gravity.CENTER_VERTICAL);TextView di=txt("MS",12,Color.rgb(70,120,170),true);di.setGravity(Gravity.CENTER);di.setBackground(bg(Color.rgb(226,239,250),30));doctor.addView(di,new LinearLayout.LayoutParams(dp(44),dp(44)));LinearLayout dt=new LinearLayout(this);dt.setOrientation(LinearLayout.VERTICAL);dt.addView(txt("Dr. Maya Shah",16,INK,true));dt.addView(txt("General Physician  •  Video consultation",12,MUTED,false),lp(0,2,0,0));doctor.addView(dt,new LinearLayout.LayoutParams(0,-2,1));doctor.addView(txt("›",27,MUTED,false));visit.addView(doctor);visit.setOnClickListener(v->openFeature("Appointments"));content.addView(visit,lp(0,12,0,7));
+        LinearLayout trust=new LinearLayout(this);trust.setGravity(Gravity.CENTER);trust.addView(txt("◇  Verified providers  •  Privacy-first care",12,Color.rgb(68,135,115),true));content.addView(trust,lp(0,4,0,0));addBottomNav("Home");setContentView(screen);
     }
+    private LinearLayout service(String icon,String title,String sub,String feature,int fill,int accent){LinearLayout b=new LinearLayout(this);b.setOrientation(LinearLayout.VERTICAL);b.setPadding(dp(15),dp(15),dp(12),dp(14));b.setBackground(outline(Color.WHITE,Color.rgb(232,234,241),1,20));b.setElevation(dp(1));b.addView(iconBox(icon,accent,fill),new LinearLayout.LayoutParams(dp(43),dp(43)));b.addView(txt(title,16,INK,true),lp(0,11,0,2));b.addView(txt(sub,11,MUTED,false));TextView arrow=txt("↗",21,MUTED,false);arrow.setGravity(Gravity.RIGHT);b.addView(arrow);b.setOnClickListener(v->openFeature(feature));return b;}
+    private String initials(String n){String[] p=n.trim().split(" ");if(p.length>1)return(""+p[0].charAt(0)+p[p.length-1].charAt(0)).toUpperCase();return n.isEmpty()?"LU":n.substring(0,Math.min(2,n.length())).toUpperCase();}
 
-    private int dp(int v) { return (int)(v * getResources().getDisplayMetrics().density + .5f); }
-
-    private GradientDrawable bg(int color, int radius) {
-        GradientDrawable d = new GradientDrawable(); d.setColor(color); d.setCornerRadius(dp(radius)); return d;
-    }
-
-    private TextView label(String value, float size, int color, boolean bold) {
-        TextView t = new TextView(this); t.setText(value); t.setTextSize(size); t.setTextColor(color);
-        if (bold) t.setTypeface(Typeface.DEFAULT, Typeface.BOLD); return t;
-    }
-
-    private LinearLayout.LayoutParams lp(int l,int t,int r,int b) {
-        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1,-2);
-        p.setMargins(dp(l),dp(t),dp(r),dp(b)); return p;
-    }
-
-    private LinearLayout.LayoutParams weightLp(float weight,int right) {
-        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0,-2,weight);
-        p.setMargins(0,0,dp(right),0); return p;
-    }
-
-    private LinearLayout card() {
-        LinearLayout c = new LinearLayout(this); c.setOrientation(LinearLayout.VERTICAL);
-        c.setPadding(dp(18),dp(16),dp(18),dp(16)); c.setBackground(bg(Color.WHITE,20)); c.setElevation(dp(2));
-        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1,-2); p.setMargins(0,dp(7),0,dp(7)); c.setLayoutParams(p); return c;
-    }
-
-    private TextView pill(String s) {
-        TextView p = label(s,13,Color.rgb(40,130,105),true); p.setGravity(Gravity.CENTER);
-        p.setPadding(dp(12),dp(7),dp(12),dp(7)); p.setBackground(bg(Color.rgb(226,247,239),18)); return p;
-    }
-
-    private void setupScreen() {
-        screen = new LinearLayout(this); screen.setOrientation(LinearLayout.VERTICAL); screen.setBackgroundColor(BG);
-        ScrollView scroll = new ScrollView(this); scroll.setFillViewport(true);
-        content = new LinearLayout(this); content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(dp(18),dp(18),dp(18),dp(95)); scroll.addView(content);
-        screen.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
-    }
-
-    private void showHome() {
-        setupScreen();
-        String name = user.getName().isEmpty() ? "there" : user.getName();
-        content.addView(label("YOUR CARE  •  TODAY",12,Color.rgb(108,119,145),true),lp(0,4,0,0));
-        content.addView(label("Good morning, " + name,28,INK,true),lp(0,5,0,12));
-
-        LinearLayout location = card(); location.setOrientation(LinearLayout.HORIZONTAL);
-        location.addView(label("⌖",25,PURPLE,false),new LinearLayout.LayoutParams(dp(38),dp(38)));
-        LinearLayout lt = new LinearLayout(this); lt.setOrientation(LinearLayout.VERTICAL);
-        lt.addView(label("Share your live location",16,INK,true)); lt.addView(label("Find the nearest available care",13,Color.GRAY,false));
-        location.addView(lt,new LinearLayout.LayoutParams(0,-2,1)); location.addView(label("›",28,Color.GRAY,false));
-        location.setOnClickListener(v -> toast("Location sharing will be connected in the next backend step.")); content.addView(location);
-
-        LinearLayout hero = new LinearLayout(this); hero.setOrientation(LinearLayout.VERTICAL); hero.setPadding(dp(22),dp(22),dp(22),dp(20)); hero.setBackground(bg(NAVY,26)); hero.setElevation(dp(3));
-        hero.addView(label("Need medical help now?",24,Color.WHITE,true));
-        hero.addView(label("A verified doctor can reach you at home in minutes.",15,Color.rgb(220,228,242),false),lp(0,7,0,14));
-        TextView emergency = label("Request emergency doctor",16,Color.WHITE,true); emergency.setGravity(Gravity.CENTER); emergency.setPadding(0,dp(15),0,dp(15)); emergency.setBackground(bg(CORAL,18)); emergency.setOnClickListener(v -> openFeature("Emergency")); hero.addView(emergency);
-        TextView amb = label("🚑  Request an ambulance instead",14,Color.rgb(255,184,178),true); amb.setPadding(0,dp(14),0,0); amb.setOnClickListener(v -> openFeature("Emergency")); hero.addView(amb);
-        content.addView(hero,lp(0,12,0,10));
-
-        content.addView(label("How can we help?",23,INK,true),lp(0,8,0,7));
-        LinearLayout row1 = new LinearLayout(this); row1.setOrientation(LinearLayout.HORIZONTAL);
-        row1.addView(serviceCard("♙","Home visit","Care at your doorstep","Home Healthcare"),weightLp(.5f,8));
-        row1.addView(serviceCard("▣","Medicines","Order from pharmacy","Pharmacy"),weightLp(.5f,0)); content.addView(row1);
-        LinearLayout row2 = new LinearLayout(this); row2.setOrientation(LinearLayout.HORIZONTAL);
-        row2.addView(serviceCard("🚑","Ambulance","Emergency transport","Emergency"),weightLp(.5f,8));
-        row2.addView(serviceCard("▤","Records","Your health history","Records"),weightLp(.5f,0)); content.addView(row2);
-
-        LinearLayout visit = card(); LinearLayout top = new LinearLayout(this); top.setOrientation(LinearLayout.HORIZONTAL);
-        top.addView(label("UPCOMING VISIT",12,Color.rgb(106,119,146),true),new LinearLayout.LayoutParams(0,-2,1)); top.addView(pill("● Confirmed")); visit.addView(top);
-        visit.addView(label("Tomorrow • 10:30 AM",20,INK,true),lp(0,7,0,7)); visit.addView(label("Dr. Maya Shah",16,INK,true)); visit.addView(label("General Physician  •  Video consultation",13,Color.GRAY,false)); visit.setOnClickListener(v -> openFeature("Appointments")); content.addView(visit,lp(0,10,0,8));
-        LinearLayout trust = new LinearLayout(this); trust.setGravity(Gravity.CENTER_VERTICAL); trust.setPadding(dp(8),dp(12),dp(8),dp(14)); trust.addView(label("◇",20,Color.rgb(53,150,120),true)); trust.addView(label("  Verified providers • Privacy-first care",13,Color.GRAY,false)); content.addView(trust);
-        addBottomNav("Home"); setContentView(screen);
-    }
-
-    private LinearLayout serviceCard(String icon,String title,String subtitle,String feature) {
-        LinearLayout box = new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(dp(15),dp(15),dp(12),dp(14)); box.setBackground(bg(Color.WHITE,20)); box.setElevation(dp(1));
-        TextView i = label(icon,22,PURPLE,true); i.setGravity(Gravity.CENTER); i.setBackground(bg(Color.rgb(242,240,255),15)); box.addView(i,new LinearLayout.LayoutParams(dp(42),dp(42)));
-        box.addView(label(title,16,INK,true),lp(0,12,0,2)); box.addView(label(subtitle,11,Color.GRAY,false)); box.setOnClickListener(v -> openFeature(feature)); return box;
-    }
-
-    private void addBottomNav(String selected) {
-        LinearLayout nav = new LinearLayout(this); nav.setOrientation(LinearLayout.HORIZONTAL); nav.setGravity(Gravity.CENTER); nav.setPadding(dp(5),dp(7),dp(5),dp(7)); nav.setBackgroundColor(Color.WHITE);
-        String[] items={"⌂\nHome","♧\nActivity","▤\nRecords","♙\nProfile"}; String[] keys={"Home","Activity","Records","Profile"};
-        for(int i=0;i<items.length;i++){ final String key=keys[i]; TextView item=label(items[i],13,key.equals(selected)?PURPLE:Color.rgb(120,128,145),key.equals(selected)); item.setGravity(Gravity.CENTER); item.setPadding(0,dp(5),0,dp(5)); item.setOnClickListener(v->{if("Home".equals(key))showHome();else if("Activity".equals(key))showActivity();else if("Records".equals(key))showRecords();else showProfile();}); nav.addView(item,new LinearLayout.LayoutParams(0,dp(58),1)); }
-        screen.addView(nav,new LinearLayout.LayoutParams(-1,dp(70)));
-    }
-
-    private void showActivity(){
-        setupScreen(); content.addView(label("YOUR CARE",12,Color.GRAY,true)); content.addView(label("Activity",30,INK,true),lp(0,5,0,14));
-        LinearLayout up=card(); up.addView(label("UPCOMING",12,Color.GRAY,true)); up.addView(label("Dr. Maya Shah",18,INK,true),lp(0,7,0,2)); up.addView(label("General Physician  •  Tomorrow at 10:30 AM",13,Color.GRAY,false)); up.setOnClickListener(v->openFeature("Appointments")); content.addView(up);
-        LinearLayout orders=card(); orders.setGravity(Gravity.CENTER); orders.addView(label("▣",30,PURPLE,false)); orders.addView(label("Medicine orders",18,INK,true),lp(0,7,0,2)); orders.addView(label("Your orders will appear here",14,Color.GRAY,false)); content.addView(orders);
-        content.addView(label("Need help?",19,INK,true),lp(0,18,0,5)); content.addView(label("Our care team is available 24/7",14,Color.GRAY,false)); addBottomNav("Activity"); setContentView(screen);
-    }
-
-    private void showRecords(){
-        setupScreen(); content.addView(label("YOUR HEALTH",12,Color.GRAY,true)); content.addView(label("Records",30,INK,true),lp(0,5,0,14));
-        LinearLayout health=card(); health.addView(label("♡  Health overview",18,INK,true)); health.addView(label("Last updated after your home visit",13,Color.GRAY,false),lp(0,5,0,0)); content.addView(health);
-        content.addView(label("Prescriptions",20,INK,true),lp(0,18,0,5)); LinearLayout rx=card(); rx.addView(label("▤  Dr. Maya Shah",17,INK,true)); rx.addView(label("Paracetamol • Cetirizine • Jun 12, 2026",13,Color.GRAY,false)); content.addView(rx);
-        content.addView(label("Past visits",20,INK,true),lp(0,18,0,5)); content.addView(recordCard("Dr. Rohan Mehta","Internal Medicine • May 28, 2026")); content.addView(recordCard("Dr. Maya Shah","General Physician • Jun 12, 2026"));
-        LinearLayout privacy=card(); privacy.addView(label("🔒  Your records are private",15,PURPLE,true)); privacy.addView(label("Only you and the care team you approve can access them.",12,Color.GRAY,false)); content.addView(privacy,lp(0,10,0,0)); addBottomNav("Records"); setContentView(screen);
-    }
-
-    private LinearLayout recordCard(String name,String detail){LinearLayout c=card(); c.addView(label("♙  "+name,16,INK,true)); c.addView(label(detail,13,Color.GRAY,false)); return c;}
-
-    private void showProfile(){
-        setupScreen(); content.addView(label("ACCOUNT",12,Color.GRAY,true)); content.addView(label("Profile",30,INK,true),lp(0,5,0,14));
-        LinearLayout identity=new LinearLayout(this); identity.setOrientation(LinearLayout.VERTICAL); identity.setPadding(dp(20),dp(20),dp(20),dp(20)); identity.setBackground(bg(NAVY,24));
-        String name=user.getName().isEmpty()?"LUMIRA User":user.getName(); identity.addView(label(name,22,Color.WHITE,true)); identity.addView(label(user.getEmail().isEmpty()?user.getPhone():user.getEmail(),13,Color.rgb(214,222,238),false),lp(0,5,0,5)); identity.addView(label("✓ Verified account",12,Color.rgb(114,220,178),true)); content.addView(identity);
-        content.addView(label("Switch workspace",20,INK,true),lp(0,20,0,5)); String[] roles={"♡  Patient","♙  Doctor","▣  Pharmacy","🚑  Ambulance","⚙  Admin"};
-        for(String role:roles){LinearLayout r=card(); r.setOrientation(LinearLayout.HORIZONTAL); r.addView(label(role,16,INK,true),new LinearLayout.LayoutParams(0,-2,1)); r.addView(label("›",24,Color.GRAY,false)); content.addView(r);}
-        TextView logout=label("Sign out",16,Color.rgb(210,70,70),true); logout.setGravity(Gravity.CENTER); logout.setPadding(0,dp(15),0,dp(15)); logout.setOnClickListener(v->{new SessionManager(this).logout();finish();}); content.addView(logout,lp(0,15,0,0)); addBottomNav("Profile"); setContentView(screen);
-    }
-
-    private void openFeature(String title){ if("Records".equals(title)){showRecords();return;} Intent i=new Intent(this,FeatureActivity.class); i.putExtra("title",title); startActivity(i); }
-    private void toast(String message){android.widget.Toast.makeText(this,message,android.widget.Toast.LENGTH_SHORT).show();}
+    private void addBottomNav(String selected){LinearLayout nav=new LinearLayout(this);nav.setGravity(Gravity.CENTER);nav.setPadding(dp(5),dp(5),dp(5),dp(7));nav.setBackgroundColor(Color.WHITE);String[] keys={"Home","Activity","Records","Profile"};String[] icons={"⌂","♧","▤","♙"};for(int i=0;i<4;i++){final String k=keys[i];LinearLayout item=new LinearLayout(this);item.setOrientation(LinearLayout.VERTICAL);item.setGravity(Gravity.CENTER);item.addView(txt(icons[i],22,k.equals(selected)?PURPLE:Color.rgb(125,133,150),false));item.addView(txt(k,11,k.equals(selected)?PURPLE:Color.rgb(125,133,150),k.equals(selected)));item.setOnClickListener(v->{if(k.equals("Home"))showHome();else if(k.equals("Activity"))showActivity();else if(k.equals("Records"))showRecords();else showProfile();});nav.addView(item,new LinearLayout.LayoutParams(0,dp(62),1));}screen.addView(nav,new LinearLayout.LayoutParams(-1,dp(70)));}
+    private void showActivity(){setup();content.addView(txt("YOUR CARE",11,MUTED,true));content.addView(txt("Activity",30,INK,true),lp(0,4,0,15));LinearLayout up=card();up.addView(txt("UPCOMING",11,MUTED,true));up.addView(txt("Dr. Maya Shah",18,INK,true),lp(0,8,0,2));up.addView(txt("General Physician  •  Tomorrow, Jun 30 at 10:30 AM",12,MUTED,false));up.setOnClickListener(v->openFeature("Appointments"));content.addView(up);content.addView(txt("Medicine orders",20,INK,true),lp(0,22,0,6));LinearLayout orders=card();orders.setGravity(Gravity.CENTER);orders.addView(iconBox("▣",Color.rgb(91,78,214),Color.rgb(242,240,255)),new LinearLayout.LayoutParams(dp(48),dp(48)));orders.addView(txt("Your orders will appear here",16,INK,true),lp(0,9,0,2));orders.addView(txt("Order medicines from verified local pharmacies.",12,MUTED,false));content.addView(orders);LinearLayout help=card();help.setOrientation(LinearLayout.HORIZONTAL);help.addView(iconBox("♧",PURPLE,Color.rgb(242,240,255)),new LinearLayout.LayoutParams(dp(44),dp(44)));LinearLayout ht=new LinearLayout(this);ht.setOrientation(LinearLayout.VERTICAL);ht.addView(txt("Need help?",16,INK,true));ht.addView(txt("Our care team is available 24/7",12,MUTED,false));help.addView(ht,new LinearLayout.LayoutParams(0,-2,1));help.addView(txt("↗",22,PURPLE,false));content.addView(help,lp(0,20,0,0));addBottomNav("Activity");setContentView(screen);}
+    private void showRecords(){setup();content.addView(txt("YOUR HEALTH",11,MUTED,true));content.addView(txt("Records",30,INK,true),lp(0,4,0,15));LinearLayout health=card();health.setOrientation(LinearLayout.HORIZONTAL);health.addView(iconBox("⌁",Color.rgb(65,158,125),Color.rgb(232,249,242)),new LinearLayout.LayoutParams(dp(46),dp(46)));LinearLayout ht=new LinearLayout(this);ht.setOrientation(LinearLayout.VERTICAL);ht.addView(txt("Health overview",17,INK,true));ht.addView(txt("Last updated after your home visit",12,MUTED,false));health.addView(ht,new LinearLayout.LayoutParams(0,-2,1));health.addView(txt("›",27,MUTED,false));content.addView(health);content.addView(txt("Prescriptions",20,INK,true),lp(0,22,0,6));LinearLayout rx=card();rx.setOrientation(LinearLayout.HORIZONTAL);rx.addView(iconBox("▤",Color.rgb(125,90,190),Color.rgb(243,237,255)),new LinearLayout.LayoutParams(dp(44),dp(44)));LinearLayout rt=new LinearLayout(this);rt.setOrientation(LinearLayout.VERTICAL);rt.addView(txt("Dr. Maya Shah",16,INK,true));rt.addView(txt("Paracetamol  •  Cetirizine  •  Jun 12, 2026",12,MUTED,false));rx.addView(rt,new LinearLayout.LayoutParams(0,-2,1));TextView view=txt("View",12,PURPLE,true);view.setGravity(Gravity.CENTER);view.setPadding(dp(10),dp(7),dp(10),dp(7));view.setBackground(bg(Color.rgb(242,240,255),12));rx.addView(view);content.addView(rx);content.addView(txt("Past visits",20,INK,true),lp(0,22,0,6));content.addView(record("Dr. Rohan Mehta","Internal Medicine  •  May 28, 2026"));content.addView(record("Dr. Maya Shah","General Physician  •  Jun 12, 2026"));LinearLayout privacy=card();privacy.setBackground(bg(Color.rgb(242,240,255),20));privacy.addView(txt("🔒  Your records are private",15,PURPLE,true));privacy.addView(txt("Only you and the care team you approve can access them.",12,MUTED,false),lp(0,4,0,0));content.addView(privacy,lp(0,12,0,0));addBottomNav("Records");setContentView(screen);}
+    private LinearLayout record(String n,String d){LinearLayout c=card();c.setOrientation(LinearLayout.HORIZONTAL);c.addView(iconBox("♙",PURPLE,Color.rgb(243,240,255)),new LinearLayout.LayoutParams(dp(44),dp(44)));LinearLayout t=new LinearLayout(this);t.setOrientation(LinearLayout.VERTICAL);t.addView(txt(n,16,INK,true));t.addView(txt(d,12,MUTED,false));c.addView(t,new LinearLayout.LayoutParams(0,-2,1));c.addView(txt("›",27,MUTED,false));return c;}
+    private void showProfile(){setup();content.addView(txt("ACCOUNT",11,MUTED,true));content.addView(txt("Profile",30,INK,true),lp(0,4,0,15));LinearLayout id=new LinearLayout(this);id.setOrientation(LinearLayout.HORIZONTAL);id.setGravity(Gravity.CENTER_VERTICAL);id.setPadding(dp(20),dp(20),dp(20),dp(20));id.setBackground(bg(NAVY,24));String name=user.getName().isEmpty()?"LUMIRA User":user.getName();TextView av=txt(initials(name),16,Color.rgb(70,120,170),true);av.setGravity(Gravity.CENTER);av.setBackground(bg(Color.WHITE,30));id.addView(av,new LinearLayout.LayoutParams(dp(52),dp(52)));LinearLayout it=new LinearLayout(this);it.setOrientation(LinearLayout.VERTICAL);it.addView(txt(name,19,Color.WHITE,true));it.addView(txt(user.getEmail().isEmpty()?user.getPhone():user.getEmail(),12,Color.rgb(214,222,238),false));it.addView(txt("✓ Verified account",11,Color.rgb(114,220,178),true),lp(0,4,0,0));id.addView(it,new LinearLayout.LayoutParams(0,-2,1));id.addView(txt("✎",22,Color.rgb(168,157,255),false));content.addView(id);content.addView(txt("Switch workspace",20,INK,true),lp(0,22,0,5));workspace("♡","Patient","Find and manage care",true);workspace("♙","Doctor","Manage visits and requests",false);workspace("▣","Pharmacy","Fulfill medicine orders",false);workspace("▱","Ambulance","Respond to emergencies",false);workspace("⚙","Admin","Monitor operations",false);content.addView(txt("Notifications   ›",16,INK,true),lp(0,20,0,12));content.addView(txt("Payment methods   ›",16,INK,true),lp(0,8,0,12));TextView logout=txt("Sign out",16,Color.rgb(210,70,70),true);logout.setGravity(Gravity.CENTER);logout.setPadding(0,dp(14),0,dp(14));logout.setOnClickListener(v->{new SessionManager(this).logout();finish();});content.addView(logout);addBottomNav("Profile");setContentView(screen);}
+    private void workspace(String icon,String title,String sub,boolean active){LinearLayout r=card();r.setOrientation(LinearLayout.HORIZONTAL);if(active)r.setBackground(outline(Color.rgb(244,242,255),PURPLE,1,20));r.addView(iconBox(icon,active?PURPLE:Color.rgb(110,117,210),Color.rgb(242,240,255)),new LinearLayout.LayoutParams(dp(44),dp(44)));LinearLayout t=new LinearLayout(this);t.setOrientation(LinearLayout.VERTICAL);t.addView(txt(title,16,INK,true));t.addView(txt(sub,12,MUTED,false));r.addView(t,new LinearLayout.LayoutParams(0,-2,1));r.addView(txt(active?"✓":"›",24,active?PURPLE:MUTED,true));content.addView(r);}
+    private void openFeature(String title){if("Records".equals(title)){showRecords();return;}Intent i=new Intent(this,FeatureActivity.class);i.putExtra("title",title);startActivity(i);}
+    private void toast(String s){android.widget.Toast.makeText(this,s,android.widget.Toast.LENGTH_SHORT).show();}
 }
