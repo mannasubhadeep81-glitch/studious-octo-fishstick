@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -33,7 +32,7 @@ public class LumiraHomeActivity extends Activity {
         if (bold) t.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         return t;
     }
-    private void card(LinearLayout parent, String title, String subtitle, int color, Runnable action) {
+    private void card(LinearLayout parent, String title, String subtitle, Runnable action) {
         TextView c = text(title + "\n" + subtitle, 16, INK, true);
         c.setLineSpacing(0, 1.15f);
         c.setPadding(dp(20), dp(18), dp(20), dp(18));
@@ -67,16 +66,15 @@ public class LumiraHomeActivity extends Activity {
         scroll.addView(content);
 
         content.addView(text("Your LUMIRA", 24, INK, true));
-        content.addView(text("All main functions stay inside one app.", 13, MUTED, false));
         LinearLayout.LayoutParams intro = new LinearLayout.LayoutParams(-1, -2);
         intro.setMargins(0, 0, 0, dp(18));
         content.addView(text("All main functions stay inside one app.", 13, MUTED, false), intro);
 
-        card(content, "LUMIRA Care", "Home care, emergency help, medicines, records and profile", NAVY,
+        card(content, "LUMIRA Care", "Home care, emergency help, medicines, records and profile",
                 () -> startActivity(new Intent(this, MainActivity.class)));
-        card(content, "LUMIRA AI", "Ask questions and receive an AI response through the secure backend", PURPLE,
+        card(content, "LUMIRA AI", "Ask questions and receive an AI response through the secure backend",
                 () -> startActivity(new Intent(this, ChatActivity.class)));
-        card(content, "AI Office", "Planning and developer workspace", NAVY,
+        card(content, "AI Office", "Planning and developer workspace",
                 () -> startActivity(new Intent(this, OfficeDashboardActivity.class)));
 
         TextView status = text("AI connection is handled by the LUMIRA backend. API keys are kept server-side.", 12, MUTED, false);
