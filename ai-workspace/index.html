@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<!-- Pages deployment refresh: 2026-09-30 -->
 <title>LUMIRA AI Workspace</title>
 <style>
 body{margin:0;font-family:system-ui;background:#0b1020;color:#fff}main{max-width:900px;margin:auto;padding:20px}section{background:#151c33;border:1px solid #2b3555;border-radius:18px;padding:18px;margin:14px 0}textarea,input{width:100%;box-sizing:border-box;background:#0d1428;color:#fff;border:1px solid #334064;border-radius:12px;padding:12px}textarea{min-height:110px}button{margin-top:12px;margin-right:8px;padding:12px 18px;border:0;border-radius:10px;background:#fff;color:#111;font-weight:700}button.secondary{background:#334064;color:#fff}#game{display:none;text-align:center}.dot{font-size:48px}pre{white-space:pre-wrap;overflow:auto}.muted{opacity:.75;font-size:14px}.status{font-weight:700}
@@ -13,8 +12,8 @@ body{margin:0;font-family:system-ui;background:#0b1020;color:#fff}main{max-width
 <p>Instruction → AI → Result</p>
 <section>
 <h2>Connection</h2>
-<input id="backend" value="https://studious-octo-fishstick-7.onrender.com" placeholder="Backend URL">
-<p class="muted">Connected to the deployed LUMIRA backend. The OpenAI API key stays on Render and is never exposed here.</p>
+<input id="backend" value="" placeholder="Using this LUMIRA server">
+<p class="muted">This workspace uses the same Render service. Your OpenAI API key stays on the server and is never exposed in the browser.</p>
 </section>
 <section>
 <h2>Instruction</h2>
@@ -27,8 +26,10 @@ body{margin:0;font-family:system-ui;background:#0b1020;color:#fff}main{max-width
 <section><h2>Result</h2><pre id="result">Waiting for an instruction.</pre></section>
 </main>
 <script>
+const backendInput=document.getElementById('backend');
+backendInput.value=window.location.origin;
 function setStatus(t){document.getElementById('status').textContent=t}
-function getConnection(){const p=document.getElementById('prompt').value.trim();const base=document.getElementById('backend').value.trim().replace(/\/$/,'');if(!p){setStatus('Enter an instruction first.');return null}if(!base){setStatus('Backend required');document.getElementById('result').textContent='Add your deployed backend URL first.';return null}return {p,base}}
+function getConnection(){const p=document.getElementById('prompt').value.trim();const base=(document.getElementById('backend').value.trim()||window.location.origin).replace(/\/$/,'');if(!p){setStatus('Enter an instruction first.');return null}return {p,base}}
 async function callAI(instruction){
  const c=getConnection();if(!c)return;
  document.getElementById('game').style.display='block';document.getElementById('result').textContent='Sending instruction to LUMIRA AI…';setStatus('Connecting');
