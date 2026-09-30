@@ -1,49 +1,56 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LUMIRA AI Workspace</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1020">
+<title>LUMIRA AI</title>
 <style>
-body{margin:0;font-family:system-ui;background:#0b1020;color:#fff}main{max-width:900px;margin:auto;padding:20px}section{background:#151c33;border:1px solid #2b3555;border-radius:18px;padding:18px;margin:14px 0}textarea,input{width:100%;box-sizing:border-box;background:#0d1428;color:#fff;border:1px solid #334064;border-radius:12px;padding:12px}textarea{min-height:110px}button{margin-top:12px;margin-right:8px;padding:12px 18px;border:0;border-radius:10px;background:#fff;color:#111;font-weight:700}button.secondary{background:#334064;color:#fff}#game{display:none;text-align:center}.dot{font-size:48px}pre{white-space:pre-wrap;overflow:auto}.muted{opacity:.75;font-size:14px}.status{font-weight:700}
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#0b1020;color:#fff}main{max-width:920px;margin:auto;padding:20px}header{padding:10px 0 8px}h1{margin:0;font-size:34px}section{background:#151c33;border:1px solid #2b3555;border-radius:18px;padding:18px;margin:14px 0}textarea{width:100%;min-height:130px;resize:vertical;background:#0d1428;color:#fff;border:1px solid #334064;border-radius:12px;padding:14px;font:inherit}button{margin-top:12px;margin-right:8px;padding:12px 18px;border:0;border-radius:10px;background:#fff;color:#111;font-weight:700;cursor:pointer}button.secondary{background:#334064;color:#fff}button:disabled{opacity:.55;cursor:not-allowed}.muted{opacity:.75;font-size:14px}.status{font-weight:700}.status.error{color:#ffb4b4}.status.ok{color:#b8f7c4}#result{white-space:pre-wrap;overflow:auto;line-height:1.55;margin:0}.dot{font-size:38px}.hidden{display:none}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#25304f;font-size:12px}
 </style>
 </head>
 <body><main>
-<h1>LUMIRA AI Workspace</h1>
-<p>Instruction → AI → Result</p>
+<header><h1>LUMIRA AI</h1><p class="muted">Your AI workspace — ask, analyze, plan and build.</p></header>
 <section>
-<h2>Connection</h2>
-<input id="backend" value="https://studious-octo-fishstick-6.onrender.com" placeholder="LUMIRA Render backend">
-<p class="muted">LUMIRA sends AI requests to the dedicated AI backend. The OpenAI API key stays on the server and is never exposed in the browser.</p>
+<span class="pill" id="healthPill">Checking backend…</span>
+<p class="muted">The API key stays on the server. It is never placed in this page.</p>
 </section>
 <section>
-<h2>Instruction</h2>
-<textarea id="prompt" placeholder="Ask LUMIRA anything..."></textarea>
-<button onclick="runPlan()">Ask LUMIRA AI</button>
-<button class="secondary" onclick="buildAndAnalyze()">Analyze / Plan</button>
+<h2>Ask LUMIRA</h2>
+<textarea id="prompt" placeholder="Ask LUMIRA anything…"></textarea>
+<button id="askBtn" onclick="runAI()">Ask LUMIRA AI</button>
+<button class="secondary" id="planBtn" onclick="analyze()">Analyze / Plan</button>
 <p class="status" id="status">Ready</p>
 </section>
-<section id="game"><h2>Working</h2><div class="dot">⚙️</div><p>LUMIRA AI is processing…</p></section>
-<section><h2>Result</h2><pre id="result">Waiting for an instruction.</pre></section>
-</main>
+<section>
+<h2>Result</h2>
+<pre id="result">Waiting for your instruction.</pre>
+</section>
 <script>
-const DEFAULT_BACKEND='https://studious-octo-fishstick-6.onrender.com';
-const backendInput=document.getElementById('backend');
-backendInput.value=DEFAULT_BACKEND;
-function setStatus(t){document.getElementById('status').textContent=t}
-function getConnection(){const p=document.getElementById('prompt').value.trim();const base=(document.getElementById('backend').value.trim()||DEFAULT_BACKEND).replace(/\/$/,'');if(!p){setStatus('Enter an instruction first.');return null}return {p,base}}
+const backend=window.location.origin;
+const promptEl=document.getElementById('prompt');
+const resultEl=document.getElementById('result');
+const statusEl=document.getElementById('status');
+const askBtn=document.getElementById('askBtn');
+const planBtn=document.getElementById('planBtn');
+const healthPill=document.getElementById('healthPill');
+function setStatus(text,type=''){statusEl.textContent=text;statusEl.className='status '+type}
+async function health(){try{const r=await fetch(backend+'/health');const d=await r.json();if(r.ok&&d.status==='ok'){healthPill.textContent='Backend online';}else throw new Error();}catch{healthPill.textContent='Backend unavailable';}}
 async function callAI(instruction){
- const c=getConnection();if(!c)return;
- document.getElementById('game').style.display='block';document.getElementById('result').textContent='Sending instruction to LUMIRA AI…';setStatus('Connecting');
+ const input=instruction.trim();
+ if(!input){setStatus('Enter a question first.','error');return}
+ askBtn.disabled=true;planBtn.disabled=true;resultEl.textContent='LUMIRA is thinking…';setStatus('Connecting to LUMIRA AI…');
  try{
-  const r=await fetch(c.base+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:instruction})});
-  const raw=await r.text();
-  let data; try{data=JSON.parse(raw)}catch{throw new Error('Backend returned a non-JSON response (HTTP '+r.status+'). Check the Render service URL.')}
-  if(!r.ok||!data.ok)throw new Error(data.error||'Backend request failed (HTTP '+r.status+').');
-  document.getElementById('result').textContent=data.output||'AI returned an empty response.';
-  setStatus('Connected • AI response received');
- }catch(e){document.getElementById('result').textContent='Connection error: '+e.message;setStatus('Connection error')}finally{document.getElementById('game').style.display='none'}
+  const r=await fetch(backend+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:input})});
+  const data=await r.json().catch(()=>({error:'Server returned an invalid response.'}));
+  if(!r.ok||!data.ok)throw new Error(data.error||('Request failed (HTTP '+r.status+').'));
+  resultEl.textContent=data.output||'AI returned an empty response.';setStatus('AI response received','ok');
+ }catch(e){resultEl.textContent='LUMIRA AI error:\n\n'+e.message;setStatus('AI connection error','error');}
+ finally{askBtn.disabled=false;planBtn.disabled=false}
 }
-function runPlan(){callAI(document.getElementById('prompt').value.trim())}
-function buildAndAnalyze(){callAI('Analyze this project request and give a practical implementation plan, required files/changes, build risks, and testing steps. Do not claim that a build was executed unless it actually was.\n\nUser request:\n'+document.getElementById('prompt').value.trim())}
+function runAI(){callAI(promptEl.value)}
+function analyze(){callAI('Analyze the following project request. Give a practical implementation plan, required files/changes, risks, and testing steps. Never claim that a build or deployment was executed unless it actually was.\n\nProject request:\n'+promptEl.value)}
+promptEl.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')runAI()});
+health();
 </script>
 </body></html>
