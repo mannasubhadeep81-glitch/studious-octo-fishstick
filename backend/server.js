@@ -10,8 +10,6 @@ const port = process.env.PORT || 10000;
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
-// Serve the LUMIRA web workspace from the same Render service.
-// Render runs this service from /backend, so the frontend is one level up.
 const workspaceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../ai-workspace");
 app.use(express.static(workspaceDir));
 
@@ -27,7 +25,10 @@ app.post("/api/chat", async (req, res) => {
   try {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: "OPENAI_API_KEY is not configured on the backend." });
+      return res.status(503).json({
+        ok: false,
+        error: "LUMIRA AI is not connected yet. Add OPENAI_API_KEY to the Render environment."
+      });
     }
 
     const message = typeof req.body?.message === "string" ? req.body.message.trim() : "";
@@ -35,24 +36,19 @@ app.post("/api/chat", async (req, res) => {
     const input = message || instruction;
 
     if (!input) {
-      return res.status(400).json({ error: "message or instruction is required." });
+      return res.status(400).json({ ok: false, error: "message or instruction is required." });
     }
 
     const client = new OpenAI({ apiKey });
     const response = await client.responses.create({
-      model: process.env.OPENAI_MODEL || "gpt-5.6-luna",
+      model: process.env.OPENAI_MODEL || "gpt-6-luna",
       input
     });
 
-    res.json({
-      ok: true,
-      output: response.output_text || ""
-    });
+    res.json({ ok: true, output: response.output_text || "" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      error: error?.message || "Backend request failed."
-    });
+    res.status(500).json({ ok: false, error: error?.message || "Backend request failed." });
   }
 });
 
