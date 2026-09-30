@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import OpenAI from "openai";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const app = express();
 const port = process.env.PORT || 10000;
@@ -8,12 +10,17 @@ const port = process.env.PORT || 10000;
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
+// Serve the LUMIRA web workspace from the same Render service.
+// Render runs this service from /backend, so the frontend is one level up.
+const workspaceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../ai-workspace");
+app.use(express.static(workspaceDir));
+
 app.get("/", (_req, res) => {
-  res.json({ name: "Lumira AI Backend", status: "ok" });
+  res.sendFile(path.join(workspaceDir, "index.html"));
 });
 
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
+  res.json({ status: "ok", name: "Lumira AI Backend" });
 });
 
 app.post("/api/chat", async (req, res) => {
