@@ -12,12 +12,15 @@ User -> LUMIRA Office -> Render Backend -> OpenAI API
                          -> Render deployment
                          -> LUMIRA status/result
 
+## Automatic build policy
+Every commit pushed to `main` triggers `.github/workflows/build-apk.yml` automatically. The workflow builds the debug APK and uploads `LUMIRA-debug-apk` as an artifact.
+
 ## Development command lifecycle
 1. User describes a task in LUMIRA.
 2. Backend sends the task to the OpenAI API.
 3. AI analyses the repository and proposes required changes.
 4. Changes are made through GitHub using an authenticated integration.
-5. GitHub Actions builds/tests the project.
+5. A push to `main` automatically starts the APK build/test workflow.
 6. Render deploys backend changes when appropriate.
 7. LUMIRA displays build/deployment status and AI summary.
 8. Destructive or production-impacting actions should require explicit user approval.
