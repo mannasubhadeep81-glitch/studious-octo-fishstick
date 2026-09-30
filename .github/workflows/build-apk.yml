@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,7 +27,6 @@ jobs:
           unzip -q /tmp/gradle.zip -d /tmp
           echo "/tmp/gradle-8.7/bin" >> "$GITHUB_PATH"
 
-      # Build the current main branch, including the latest LUMIRA fixes.
       - name: Build Debug APK
         run: gradle --no-daemon assembleDebug
 
@@ -34,5 +36,3 @@ jobs:
           name: LUMIRA-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-
-      # Triggered after the animation-resource fix is present on main.
