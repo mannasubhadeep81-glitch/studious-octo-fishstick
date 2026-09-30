@@ -12,8 +12,8 @@ body{margin:0;font-family:system-ui;background:#0b1020;color:#fff}main{max-width
 <p>Instruction → AI → Result</p>
 <section>
 <h2>Connection</h2>
-<input id="backend" value="https://studious-octo-fishstick-8.onrender.com" placeholder="LUMIRA Render backend">
-<p class="muted">LUMIRA sends AI requests to the Render backend. The OpenAI API key stays on the server and is never exposed in the browser.</p>
+<input id="backend" value="https://studious-octo-fishstick-6.onrender.com" placeholder="LUMIRA Render backend">
+<p class="muted">LUMIRA sends AI requests to the dedicated AI backend. The OpenAI API key stays on the server and is never exposed in the browser.</p>
 </section>
 <section>
 <h2>Instruction</h2>
@@ -26,7 +26,7 @@ body{margin:0;font-family:system-ui;background:#0b1020;color:#fff}main{max-width
 <section><h2>Result</h2><pre id="result">Waiting for an instruction.</pre></section>
 </main>
 <script>
-const DEFAULT_BACKEND='https://studious-octo-fishstick-8.onrender.com';
+const DEFAULT_BACKEND='https://studious-octo-fishstick-6.onrender.com';
 const backendInput=document.getElementById('backend');
 backendInput.value=DEFAULT_BACKEND;
 function setStatus(t){document.getElementById('status').textContent=t}
@@ -37,7 +37,7 @@ async function callAI(instruction){
  try{
   const r=await fetch(c.base+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:instruction})});
   const raw=await r.text();
-  let data; try{data=JSON.parse(raw)}catch{throw new Error('Backend returned a non-JSON response (HTTP '+r.status+'). Check the Render service URL.')} 
+  let data; try{data=JSON.parse(raw)}catch{throw new Error('Backend returned a non-JSON response (HTTP '+r.status+'). Check the Render service URL.')}
   if(!r.ok||!data.ok)throw new Error(data.error||'Backend request failed (HTTP '+r.status+').');
   document.getElementById('result').textContent=data.output||'AI returned an empty response.';
   setStatus('Connected • AI response received');
