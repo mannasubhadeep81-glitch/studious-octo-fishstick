@@ -12,12 +12,12 @@ body{margin:0;font-family:system-ui;background:#0b1020;color:#fff}main{max-width
 <p>Instruction → AI → Result</p>
 <section>
 <h2>Connection</h2>
-<input id="backend" value="" placeholder="Using this LUMIRA server">
-<p class="muted">This workspace uses the same Render service. Your OpenAI API key stays on the server and is never exposed in the browser.</p>
+<input id="backend" value="https://studious-octo-fishstick-7.onrender.com" placeholder="LUMIRA Render backend">
+<p class="muted">LUMIRA sends AI requests to the Render backend. The OpenAI API key stays on the server and is never exposed in the browser.</p>
 </section>
 <section>
 <h2>Instruction</h2>
-<textarea id="prompt" placeholder="Tell LUMIRA what you want to build, change, explain, or analyze..."></textarea>
+<textarea id="prompt" placeholder="Ask LUMIRA anything..."></textarea>
 <button onclick="runPlan()">Ask LUMIRA AI</button>
 <button class="secondary" onclick="buildAndAnalyze()">Analyze / Plan</button>
 <p class="status" id="status">Ready</p>
@@ -26,10 +26,11 @@ body{margin:0;font-family:system-ui;background:#0b1020;color:#fff}main{max-width
 <section><h2>Result</h2><pre id="result">Waiting for an instruction.</pre></section>
 </main>
 <script>
+const DEFAULT_BACKEND='https://studious-octo-fishstick-7.onrender.com';
 const backendInput=document.getElementById('backend');
-backendInput.value=window.location.origin;
+backendInput.value=DEFAULT_BACKEND;
 function setStatus(t){document.getElementById('status').textContent=t}
-function getConnection(){const p=document.getElementById('prompt').value.trim();const base=(document.getElementById('backend').value.trim()||window.location.origin).replace(/\/$/,'');if(!p){setStatus('Enter an instruction first.');return null}return {p,base}}
+function getConnection(){const p=document.getElementById('prompt').value.trim();const base=(document.getElementById('backend').value.trim()||DEFAULT_BACKEND).replace(/\/$/,'');if(!p){setStatus('Enter an instruction first.');return null}return {p,base}}
 async function callAI(instruction){
  const c=getConnection();if(!c)return;
  document.getElementById('game').style.display='block';document.getElementById('result').textContent='Sending instruction to LUMIRA AI…';setStatus('Connecting');
