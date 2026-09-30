@@ -5,6 +5,12 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application android:theme="@style/AppTheme" android:label="LUMIRA" android:allowBackup="true">
+        <activity android:name=".LumiraHomeActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity android:name=".OfficeDashboardActivity" android:exported="false" />
         <activity android:name=".ChatActivity" android:exported="false" />
         <activity android:name=".LocationActivity" android:exported="false" />
@@ -12,11 +18,6 @@
         <activity android:name=".FeatureActivity" android:exported="false" />
         <activity android:name=".MainActivity" android:exported="false" />
         <activity android:name=".LoginActivity" android:exported="false" />
-        <activity android:name=".WorkspaceActivity" android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <activity android:name=".WorkspaceActivity" android:exported="false" />
     </application>
 </manifest>
