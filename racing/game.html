@@ -92,7 +92,7 @@ if(hitFlash>0){g.fillStyle='rgba(255,40,40,'+Math.min(.32,hitFlash)+')';g.fillRe
 }
 function update(dt){
 const manual=(inp.r?1:0)-(inp.l?1:0),steer=tiltOK&&Math.abs(tilt)>.08?tilt:manual;
-if(inp.n&&nitro>0&&nitroTime<=0)nitroTime=3.2;
+if(inp.n&&nitro>0&&nitroTime<=0){nitroTime=3.2;if(navigator.vibrate)navigator.vibrate(55);}
 const boosting=nitroTime>0&&nitro>0;
 if(boosting){nitroTime=Math.max(0,nitroTime-dt);nitro=Math.max(0,nitro-31*dt)}else{nitro=Math.min(100,nitro+8*dt)}
 const pMax=boosting?420:285,pAcc=boosting?690:430,pBrake=boosting?20:34;
