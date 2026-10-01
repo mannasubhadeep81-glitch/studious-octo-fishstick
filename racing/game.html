@@ -26,7 +26,7 @@ const inp={l:false,r:false,n:false};const player={x:-.06,vx:0,speed:0,dist:0};co
 const TRACK=30000,LAP=30000,CAR_W=.12,CAR_L=92;
 const obstacles=[850,1250,1650,2050,2450,2850,3250,3650,4100,4500,4900,5350,5800,6250,6700,7150,7600,8050,8500,8950,9400,9850,10300,10750,11200,11650,12100].map((d,i)=>({d,x:[-.34,.34,-.29,.30,-.24,.22,.35,-.32,.28,-.36,.31,-.26,.34,-.30,.24,.36,-.28,.27,-.35,.32,-.25,.30,-.34,.26,.35,-.31,.29][i]}));
 // Pedestrians appear only after 20.00 km and may step onto the road.
-const humans=Array.from({length:14},(_,i)=>({d:20500+i*570,x:[-.46,.43,-.39,.37,-.45,.41,-.36,.44,-.42,.38,-.40,.45,-.35,.41][i],dir:i%2? -1:1,speed:0.075+(i%3)*0.018}));
+const humans=Array.from({length:18},(_,i)=>({d:20000+i*500,x:[-.46,.43,-.39,.37,-.45,.41,-.36,.44,-.42,.38,-.40,.45,-.35,.41][i],dir:i%2? -1:1,speed:0.075+(i%3)*0.018}));
 let running=false,last=0,nitro=100,nitroTime=0,tilt=0,tiltOK=false,aiMood=0,aiCooldown=0,hitFlash=0,sceneryDist=0;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const BACKEND_URL="https://studious-octo-fishstick-9.onrender.com";
