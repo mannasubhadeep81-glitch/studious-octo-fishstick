@@ -1,7 +1,7 @@
 <!doctype html>
 <html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>LUMIRA Racing V49 • SCENERY</title>
+<title>LUMIRA Racing V50 • SCENERY</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071018;color:#fff;font-family:system-ui,-apple-system,sans-serif}
 canvas{display:block;width:100%;height:100%;touch-action:none}
@@ -78,7 +78,7 @@ g.fillStyle='#4f8f3d';g.fillRect(0,horizon,W*.19,H-horizon);g.fillRect(W*.81,hor
 for(let i=0;i<9;i++){const yy=horizon+35+i*((H-horizon-55)/9),sc=.55+i*.10;drawTree(55+(i%3)*55,yy,sc);drawTree(W-55-(i%3)*55,yy,sc);if(i%3===1){drawHouse(145,yy+5,sc*.7,false);drawHouse(W-145,yy+5,sc*.7,true)}}
 const top=W*.14,bot=W*.37;g.fillStyle='#292f36';g.beginPath();g.moveTo(W/2-top,horizon);g.lineTo(W/2+top,horizon);g.lineTo(W/2+bot,H);g.lineTo(W/2-bot,H);g.closePath();g.fill();
 g.strokeStyle='#e24b50';g.lineWidth=8;for(const side of[-1,1]){g.beginPath();g.moveTo(W/2+side*top,horizon);g.lineTo(W/2+side*bot,H);g.stroke()}
-g.strokeStyle='#f5ed62';g.lineWidth=4;g.setLineDash([24,28]);g.lineDashOffset=-(player.dist%52);for(const x of[W/2-W*.17,W/2+W*.17]){g.beginPath();g.moveTo(x,horizon);g.lineTo(x,H);g.stroke()}g.setLineDash([]);
+g.strokeStyle='#f5ed62';g.lineWidth=4;g.setLineDash([24,28]);g.lineDashOffset=-(player.dist%52);g.beginPath();g.moveTo(W/2,horizon);g.lineTo(W/2,H);g.stroke();g.setLineDash([]);
 const rel=rival.dist-player.dist,roadHalf=W*.37,playerY=H*.78,rivalY=playerY-rel*.22,rivalX=W/2+rival.x*roadHalf,playerX=W/2+player.x*roadHalf;
 for(let i=0;i<20;i++){const d=Math.floor(player.dist/150)*150+i*150+70,od=d-player.dist;if(od>-450&&od<2300){const y=playerY-od*.22,s=clamp(1.25-Math.abs(od)/2600*.52,.28,1.25),side=i%2?-1:1,edge=roadHalf+55+s*48;drawTree(W/2+side*edge,y-28,s);if(i%4===0)drawHouse(W/2+side*(edge+58+s*30),y+8,s*.72,side<0)}}
 for(let i=0;i<7;i++){const od=((i*430+player.dist*.18)%3000)-300;const y=horizon+Math.max(8,Math.min(H*.18,od*.055));const x=((i*137)%W);if(y<horizon+120)drawBird(x,y,.35+i*.035)}
