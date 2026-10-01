@@ -1,7 +1,7 @@
 <!doctype html>
 <html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>LUMIRA Racing V86 • OPENAI AI</title>
+<title>LUMIRA Racing V87 • OPENAI AI</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071018;color:#fff;font-family:system-ui,-apple-system,sans-serif}
 canvas{display:block;width:100%;height:100%;touch-action:none}
@@ -18,7 +18,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 <div class="hud"><span class="pill">🔴 YOU <b id="you">0</b> km/h</span><span class="pill">📏 <b id="distance">0.00 / 50.00</b> km</span><span class="pill">🔵 AI <b id="ai">0</b> km/h</span></div>
 <div class="speed"><div style="text-align:center"><b id="speed">0</b><br><small>KM/H</small></div></div>
 <div class="controls"><div class="steer"><button class="btn" id="left">◀</button><button class="btn" id="right">▶</button></div><button class="btn nitro" id="nitro">⚡<br>NITRO</button></div>
-<div id="menu" class="menu"><div class="card"><h1 id="title">🏎️ YOU vs LUMIRA AI</h1><p id="sub">V86 • FINISH AFTER 2 KM</p><div id="result" class="result hide"></div><button id="start">▶ START DUEL</button><p class="small">Fast acceleration, visible speed feedback, timed Nitro, realistic roadside scenery, dangerous rocks and a ChatGPT-controlled co-driver car.</p></div></div>
+<div id="menu" class="menu"><div class="card"><h1 id="title">🏎️ YOU vs LUMIRA AI</h1><p id="sub">V87 • FINISH AFTER 2 KM</p><div id="result" class="result hide"></div><button id="start">▶ START DUEL</button><p class="small">Fast acceleration, visible speed feedback, timed Nitro, realistic roadside scenery, dangerous rocks and a ChatGPT-controlled co-driver car.</p></div></div>
 <script>
 (()=>{const c=document.getElementById('game'),g=c.getContext('2d'),$=id=>document.getElementById(id);
 let W,H,D;function resize(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;g.setTransform(D,0,0,D,0,0)}addEventListener('resize',resize);resize();
@@ -258,7 +258,7 @@ const dz=rival.dist-player.dist,dx=Math.abs(rival.x-player.x);if(Math.abs(dz)<CA
 hitFlash=Math.max(0,hitFlash-dt);$('you').textContent=Math.round(player.speed);$('ai').textContent=Math.round(rival.speed);$('speed').textContent=Math.round(player.speed);$('distance').textContent=(Math.min(TRACK,player.dist)/1000).toFixed(2)+' / 50.00';$('lap').textContent='RACE';
 // The 50.00 km mark only activates the finish zone; crossing the finish line
 // requires an additional physical crossing distance.
-const FINISH_CROSS=220;
+const FINISH_CROSS=0;
 if(player.dist>=TRACK+FINISH_CROSS||rival.dist>=TRACK+FINISH_CROSS){
   if(player.dist>=TRACK+FINISH_CROSS&&player.dist>rival.dist)finish('🏆 YOU WIN!','You crossed the finish line after completing 50.00 km');
   else finish('🔵 LUMIRA AI WINS','LUMIRA AI crossed the finish line after completing 50.00 km');
