@@ -24,7 +24,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 let W,H,D;function resize(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;g.setTransform(D,0,0,D,0,0)}addEventListener('resize',resize);resize();
 const inp={l:false,r:false,n:false};const player={x:-.06,vx:0,speed:0,dist:0};const rival={x:.20,vx:0,speed:0,dist:70};
 const TRACK=12600,LAP=4200,CAR_W=.12,CAR_L=92;
-const obstacles=[850,1250,1650,2050,2450,2850,3250,3650,4100,4500,4900,5350,5800,6250,6700,7150,7600,8050,8500,8950,9400,9850,10300,10750,11200,11650,12100].map((d,i)=>({d,x:[-.27,.25,-.12,.28,-.24,.08,.30,-.18,.10,-.30,.22,-.06,.27,-.25,.12,.31,-.16,.05,-.29,.20,-.10,.28,-.22,.09,.30,-.27,.14,-.05][i]}));
+const obstacles=[850,1250,1650,2050,2450,2850,3250,3650,4100,4500,4900,5350,5800,6250,6700,7150,7600,8050,8500,8950,9400,9850,10300,10750,11200,11650,12100].map((d,i)=>({d,x:[-.34,.34,-.29,.30,-.24,.22,.35,-.32,.28,-.36,.31,-.26,.34,-.30,.24,.36,-.28,.27,-.35,.32,-.25,.30,-.34,.26,.35,-.31,.29][i]}));
 let running=false,last=0,nitro=100,nitroTime=0,tilt=0,tiltOK=false,aiMood=0,aiCooldown=0,hitFlash=0;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function reset(){Object.assign(player,{x:-.06,vx:0,speed:0,dist:0});Object.assign(rival,{x:.20,vx:0,speed:0,dist:70});nitro=100;nitroTime=0;aiMood=0;aiCooldown=0;hitFlash=0}
