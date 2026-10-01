@@ -105,9 +105,22 @@ player.dist+=player.speed*dt;
 const smoothNeed=nitroTime<=0&&player.speed>285; if(smoothNeed)player.speed=285;
 aiCooldown-=dt;if(aiCooldown<=0){aiCooldown=1.8+Math.random()*2.6;aiMood=Math.random()<.58?1:Math.random()<.5?-1:0}
 const ahead=player.dist-rival.dist,sameLane=Math.abs(player.x-rival.x)<.18,roadRisk=Math.abs(rival.x)>.39;
-let targetSpeed=258+(aiMood>0?24:aiMood<0?-10:0)+(ahead>650?12:0)-(roadRisk?85:0)-(sameLane&&ahead>0?14:0);
-targetSpeed=clamp(targetSpeed,165,304);rival.speed+=(targetSpeed-rival.speed)*Math.min(1,dt*(targetSpeed>rival.speed?1.8:2.8));rival.speed=clamp(rival.speed,0,304);
-const avoid=sameLane?(rival.x<=player.x?.28:-.28):0,desiredX=clamp(.12+Math.sin(rival.dist/650)*.16+avoid,-.40,.40);rival.vx+=(desiredX-rival.x)*5.2*dt;rival.vx*=Math.pow(.004,dt);rival.x=clamp(rival.x+rival.vx*dt,-.42,.42);if(Math.abs(rival.x)>.40)rival.speed=Math.max(0,rival.speed-70*dt);rival.dist+=rival.speed*dt;
+const aiLanes=[-.34,0,.34];let bestLane=rival.x,bestScore=-1e9;
+for(const lane of aiLanes){
+  let risk=0;
+  for(const o of obstacles){const od=o.d-rival.dist;if(od>0&&od<620){const laneGap=Math.abs(o.x-lane);if(laneGap<.18)risk+=(620-od)*(1.2+(0.18-laneGap)*8)}}
+  const playerBlock=Math.abs(player.x-lane)<.16&&ahead>-220&&ahead<420?180:0;
+  const edgePenalty=Math.abs(lane)>.34?90:0;
+  const smoothPenalty=Math.abs(lane-rival.x)*55;
+  const overtakingBonus=(ahead>-120&&ahead<900&&Math.abs(player.x-lane)>.18)?90:0;
+  const score=1000-risk-playerBlock-edgePenalty-smoothPenalty+overtakingBonus;
+  if(score>bestScore){bestScore=score;bestLane=lane}
+}
+let targetSpeed=258+(aiMood>0?24:aiMood<0?-8:0)+(ahead>450?18:0)+(rival.dist>TRACK-900?35:0)-(roadRisk?55:0);
+for(const o of obstacles){const od=o.d-rival.dist;if(od>0&&od<360&&Math.abs(o.x-rival.x)<.20)targetSpeed-=70}
+if(ahead>0&&ahead<280&&Math.abs(player.x-rival.x)<.22)targetSpeed+=18;
+targetSpeed=clamp(targetSpeed,175,330);rival.speed+=(targetSpeed-rival.speed)*Math.min(1,dt*(targetSpeed>rival.speed?2.4:3.2));rival.speed=clamp(rival.speed,0,330);
+const desiredX=clamp(bestLane,-.42,.42);rival.vx+=(desiredX-rival.x)*7.2*dt;rival.vx*=Math.pow(.0025,dt);rival.x=clamp(rival.x+rival.vx*dt,-.42,.42);if(Math.abs(rival.x)>.40)rival.speed=Math.max(0,rival.speed-55*dt);rival.dist+=rival.speed*dt;
 for(const o of obstacles){const od=o.d-player.dist;if(Math.abs(od)<CAR_L*.66&&Math.abs(o.x-player.x)<CAR_W*.95){finish('💥 GAME OVER','You hit a rock hazard');return}}
 const dz=rival.dist-player.dist,dx=Math.abs(rival.x-player.x);if(Math.abs(dz)<CAR_L&&dx<CAR_W){const push=player.x<rival.x?-1:1;player.vx+=push*1.5;rival.vx-=push*1.2;player.speed*=.76;rival.speed*=.80;hitFlash=.42}
 hitFlash=Math.max(0,hitFlash-dt);$('you').textContent=Math.round(player.speed);$('ai').textContent=Math.round(rival.speed);$('speed').textContent=Math.round(player.speed);$('lap').textContent=Math.min(3,Math.floor(player.dist/LAP)+1)+'/3';
