@@ -1,7 +1,7 @@
 <!doctype html>
 <html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>LUMIRA Racing V58 • SCENERY</title>
+<title>LUMIRA Racing V67 • MOVING ROADSIDE</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071018;color:#fff;font-family:system-ui,-apple-system,sans-serif}
 canvas{display:block;width:100%;height:100%;touch-action:none}
@@ -13,7 +13,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 .steer{display:flex;gap:10px}.btn{width:70px;height:58px;border:1px solid #ffffff55;border-radius:18px;background:#071827e8;color:#fff;font-size:28px;font-weight:900;touch-action:none;box-shadow:0 8px 22px #0006}
 .nitro{width:104px;border-radius:50%;background:#0876bd;border:4px solid #63d9ff;font-size:12px}
 .menu{position:fixed;inset:0;display:grid;place-items:center;background:#020711aa;z-index:9}.card{width:min(430px,86vw);padding:23px;border-radius:24px;text-align:center;background:#102c4d;border:1px solid #5bcfff66;box-shadow:0 18px 60px #0008}.card button{width:100%;height:56px;border:0;border-radius:15px;background:#159fe8;color:#fff;font-size:18px;font-weight:900}.hide{display:none!important}.result{font-size:19px;font-weight:900;margin:12px 0}.small{opacity:.8;font-size:13px;line-height:1.45}
-</style></head><body><div id="sceneBadge" style="position:fixed;top:48px;left:50%;transform:translateX(-50%);z-index:5;background:#063b2aee;color:#fff;border:1px solid #ffffff55;border-radius:12px;padding:6px 10px;font:900 11px system-ui;letter-spacing:.4px">🌳 ROADSCAPE • V49</div>
+</style></head><body><div id="sceneBadge" style="position:fixed;top:48px;left:50%;transform:translateX(-50%);z-index:5;background:#063b2aee;color:#fff;border:1px solid #ffffff55;border-radius:12px;padding:6px 10px;font:900 11px system-ui;letter-spacing:.4px">🌳 ROADSCAPE • V67</div>
 <canvas id="game"></canvas>
 <div class="hud"><span class="pill">🔴 YOU <b id="you">0</b> km/h</span><span class="pill">🏁 <b id="lap">1/3</b></span><span class="pill">🔵 AI <b id="ai">0</b> km/h</span></div>
 <div class="speed"><div style="text-align:center"><b id="speed">0</b><br><small>KM/H</small></div></div>
@@ -76,7 +76,23 @@ let sky=g.createLinearGradient(0,0,0,horizon);sky.addColorStop(0,'#5fd2ff');sky.
 g.fillStyle='#668d9a';g.beginPath();g.moveTo(0,horizon);g.lineTo(W*.20,horizon-82);g.lineTo(W*.34,horizon-28);g.lineTo(W*.44,horizon-8);g.lineTo(W*.50,horizon);g.lineTo(W*.56,horizon-8);g.lineTo(W*.66,horizon-28);g.lineTo(W*.80,horizon-82);g.lineTo(W,horizon);g.lineTo(W,H);g.lineTo(0,H);g.closePath();g.fill();
 g.fillStyle='#167845';g.fillRect(0,horizon,W,H-horizon);
 g.fillStyle='#4f8f3d';g.fillRect(0,horizon,W*.19,H-horizon);g.fillRect(W*.81,horizon,W*.19,H-horizon);
-for(let i=0;i<9;i++){const yy=horizon+35+i*((H-horizon-55)/9),sc=.55+i*.10;drawTree(55+(i%3)*55,yy,sc);drawTree(W-55-(i%3)*55,yy,sc);if(i%3===1){drawHouse(145,yy+5,sc*.7,false);drawHouse(W-145,yy+5,sc*.7,true)}}
+const roadHalf=W*.37;
+const sceneBase=Math.floor(player.dist/120)*120;
+for(let i=0;i<18;i++){
+  const d=sceneBase+i*120+80;
+  const od=d-player.dist;
+  if(od>-520&&od<2550){
+    const p=clamp(1-Math.abs(od)/2550,0,1);
+    const y=horizon+35+(od/2550)*(H-horizon-80);
+    const s=clamp(.30+p*.95,.30,1.25);
+    const side=i%2?-1:1;
+    const edge=roadHalf+72+s*58;
+    const wind=Math.sin(sceneT+i*.61)*4.5*s;
+    const px=W/2+side*edge+wind;
+    drawTree(px,y-28,s);
+    if(i%3===1) drawHouse(px+side*(48+s*20),y+8,s*.68,side<0);
+  }
+}
 const top=W*.14,bot=W*.37;g.fillStyle='#292f36';g.beginPath();g.moveTo(W/2-top,horizon);g.lineTo(W/2+top,horizon);g.lineTo(W/2+bot,H);g.lineTo(W/2-bot,H);g.closePath();g.fill();
 g.strokeStyle='#e24b50';g.lineWidth=8;for(const side of[-1,1]){g.beginPath();g.moveTo(W/2+side*top,horizon);g.lineTo(W/2+side*bot,H);g.stroke()}
 g.strokeStyle='#f5ed62';g.lineWidth=4;g.setLineDash([24,28]);g.lineDashOffset=-(player.dist%52);g.beginPath();g.moveTo(W/2,horizon);g.lineTo(W/2,H);g.stroke();g.setLineDash([]);
