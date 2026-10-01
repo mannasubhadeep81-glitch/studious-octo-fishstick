@@ -1,7 +1,7 @@
 <!doctype html>
 <html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>LUMIRA Racing V55 • SCENERY</title>
+<title>LUMIRA Racing V56 • SCENERY</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071018;color:#fff;font-family:system-ui,-apple-system,sans-serif}
 canvas{display:block;width:100%;height:100%;touch-action:none}
@@ -69,7 +69,7 @@ g.restore()}function drawRock(x,y,scale){g.save();g.translate(x,y);g.scale(scale
 function drawTree(x,y,s){g.save();g.translate(x,y);g.scale(s,s);g.fillStyle='#5a3924';g.fillRect(-4,0,8,28);g.fillStyle='#145f35';g.beginPath();g.arc(0,-12,20,0,Math.PI*2);g.arc(-12,0,15,0,Math.PI*2);g.arc(12,0,15,0,Math.PI*2);g.fill();g.fillStyle='#2b8a4d';g.beginPath();g.arc(-5,-17,10,0,Math.PI*2);g.fill();g.restore()}
 function drawHouse(x,y,s,flip=false){g.save();g.translate(x,y);g.scale((flip?-1:1)*s,s);g.fillStyle='#d7bd91';g.fillRect(-28,-2,56,31);g.fillStyle='#9a4638';g.beginPath();g.moveTo(-36,-2);g.lineTo(0,-30);g.lineTo(36,-2);g.closePath();g.fill();g.fillStyle='#61382c';g.fillRect(-7,13,14,16);g.fillStyle='#91d8e8';g.fillRect(-21,5,11,10);g.fillRect(10,5,11,10);g.fillStyle='#eee';g.globalAlpha=.35;g.fillRect(-25,1,50,3);g.globalAlpha=1;g.restore()}
 function drawCloud(x,y,s){g.save();g.translate(x,y);g.scale(s,s);g.fillStyle='rgba(255,255,255,.9)';g.beginPath();g.arc(-24,5,16,0,Math.PI*2);g.arc(-5,-4,22,0,Math.PI*2);g.arc(17,4,17,0,Math.PI*2);g.arc(34,9,11,0,Math.PI*2);g.fill();g.restore()}
-function drawBird(x,y,s){g.save();g.translate(x,y);g.scale(s,s);g.strokeStyle='#263746';g.lineWidth=2.2;g.lineCap='round';g.beginPath();g.moveTo(-8,1);g.quadraticCurveTo(-3,-7,0,0);g.quadraticCurveTo(4,-7,9,1);g.stroke();g.restore()}
+function drawBird(x,y,s){g.save();g.translate(x,y);g.scale(s,s);g.strokeStyle='#263746';g.lineWidth=4.2;g.lineCap='round';g.beginPath();g.moveTo(-12,2);g.quadraticCurveTo(-5,-11,0,0);g.quadraticCurveTo(6,-11,12,2);g.stroke();g.restore()}
 function drawScenery(){const roadW=canvas.width*.62, left=canvas.width/2-roadW/2, right=canvas.width/2+roadW/2;g.save();g.fillStyle='#79ad55';g.fillRect(0,0,canvas.width,canvas.height);for(let i=0;i<9;i++){const p=i/9, y=90+p*p*canvas.height*.72, s=.35+p*.85, spread=70+p*115;drawTree(left-spread,y,s);drawTree(right+spread,y,s);if(i%2===0){drawHouse(left-spread-65,y+12,s*.8,i%4===0);drawHouse(right+spread+65,y+12,s*.8,i%4!==0)}}for(let i=0;i<5;i++){const x=canvas.width*(.12+i*.19), y=55+Math.sin(i*2)*20;drawBird(x,y,.45+i*.05)}g.restore()}
 function draw(){g.clearRect(0,0,W,H);const horizon=H*.25;
 let sky=g.createLinearGradient(0,0,0,horizon);sky.addColorStop(0,'#5fd2ff');sky.addColorStop(1,'#e8fbff');g.fillStyle=sky;g.fillRect(0,0,W,horizon);
@@ -83,7 +83,7 @@ g.strokeStyle='#f5ed62';g.lineWidth=4;g.setLineDash([24,28]);g.lineDashOffset=-(
 const rel=rival.dist-player.dist,roadHalf=W*.37,playerY=H*.78,rivalY=playerY-rel*.22,rivalX=W/2+rival.x*roadHalf,playerX=W/2+player.x*roadHalf;
 for(let i=0;i<20;i++){const d=Math.floor(player.dist/150)*150+i*150+70,od=d-player.dist;if(od>-450&&od<2300){const y=playerY-od*.22,s=clamp(1.25-Math.abs(od)/2600*.52,.28,1.25),side=i%2?-1:1,edge=roadHalf+55+s*48;drawTree(W/2+side*edge,y-28,s);if(i%4===0)drawHouse(W/2+side*(edge+58+s*30),y+8,s*.72,side<0)}}
 for(let i=0;i<4;i++){drawCloud(W*(.18+i*.22),55+(i%2)*28,.55+(i%2)*.12)}
-for(let i=0;i<5;i++){const t=(performance.now()*.000035+i*.23)%1;const x=W*(.20+i*.17)+t*W*.18;const y=48+i*16-Math.sin(t*Math.PI)*12;drawBird(x%W,y,.72+i*.035)}
+for(let i=0;i<5;i++){const t=(performance.now()*.000035+i*.23)%1;const x=W*(.20+i*.17)+t*W*.18;const y=48+i*16-Math.sin(t*Math.PI)*12;drawBird(x%W,y,.95+i*.04)}
 for(const o of obstacles){const od=o.d-player.dist;if(od>-700&&od<1900){const oy=playerY-od*.22,ox=W/2+o.x*roadHalf,os=clamp(1.18-Math.abs(od)/2600*.18,.72,1.18);drawRock(ox,oy,os)}}
 if(rivalY>-130&&rivalY<H+130){drawCar(rivalX,rivalY,'#168cff',clamp(1.18-Math.abs(rel)/2600*.18,.88,1.18))}
 drawCar(playerX,playerY,'#ef2630',1.18);
