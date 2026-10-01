@@ -1,7 +1,7 @@
 <!doctype html>
 <html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>LUMIRA Racing V92 • OPENAI AI</title>
+<title>LUMIRA Racing V93 • OPENAI AI</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071018;color:#fff;font-family:system-ui,-apple-system,sans-serif}
 canvas{display:block;width:100%;height:100%;touch-action:none}
@@ -13,18 +13,20 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 .steer{display:flex;gap:10px}.btn{width:70px;height:58px;border:1px solid #ffffff55;border-radius:18px;background:#071827e8;color:#fff;font-size:28px;font-weight:900;touch-action:none;box-shadow:0 8px 22px #0006}
 .nitro{width:104px;border-radius:50%;background:#0876bd;border:4px solid #63d9ff;font-size:12px}
 .menu{position:fixed;inset:0;display:grid;place-items:center;background:#020711aa;z-index:9}.card{width:min(430px,86vw);padding:23px;border-radius:24px;text-align:center;background:#102c4d;border:1px solid #5bcfff66;box-shadow:0 18px 60px #0008}.card button{width:100%;height:56px;border:0;border-radius:15px;background:#159fe8;color:#fff;font-size:18px;font-weight:900}.hide{display:none!important}.result{font-size:19px;font-weight:900;margin:12px 0}.small{opacity:.8;font-size:13px;line-height:1.45}
-</style></head><body><div id="sceneBadge" style="position:fixed;top:48px;left:50%;transform:translateX(-50%);z-index:5;background:#063b2aee;color:#fff;border:1px solid #ffffff55;border-radius:12px;padding:6px 10px;font:900 11px system-ui;letter-spacing:.4px">🤖 V82 • OPENAI AI</div>
+</style></head><body><div id="sceneBadge" style="position:fixed;top:48px;left:50%;transform:translateX(-50%);z-index:5;background:#063b2aee;color:#fff;border:1px solid #ffffff55;border-radius:12px;padding:6px 10px;font:900 11px system-ui;letter-spacing:.4px">🤖 V93 • OPENAI AI</div>
 <canvas id="game"></canvas>
 <div class="hud"><span class="pill">🔴 YOU <b id="you">0</b> km/h</span><span class="pill">📏 <b id="distance">0.00 / 30.00</b> km</span><span class="pill">🔵 AI <b id="ai">0</b> km/h</span></div>
 <div class="speed"><div style="text-align:center"><b id="speed">0</b><br><small>KM/H</small></div></div>
 <div class="controls"><div class="steer"><button class="btn" id="left">◀</button><button class="btn" id="right">▶</button></div><button class="btn nitro" id="nitro">⚡<br>NITRO</button></div>
-<div id="menu" class="menu"><div class="card"><h1 id="title">🏎️ YOU vs LUMIRA AI</h1><p id="sub">V92 • FINISH AFTER 2 KM</p><div id="result" class="result hide"></div><button id="start">▶ START DUEL</button><p class="small">Fast acceleration, visible speed feedback, timed Nitro, realistic roadside scenery, dangerous rocks and a ChatGPT-controlled co-driver car.</p></div></div>
+<div id="menu" class="menu"><div class="card"><h1 id="title">🏎️ YOU vs LUMIRA AI</h1><p id="sub">V93 • 30 KM RACE • PEDESTRIANS AFTER 20 KM</p><div id="result" class="result hide"></div><button id="start">▶ START DUEL</button><p class="small">Fast acceleration, visible speed feedback, timed Nitro, realistic roadside scenery, dangerous rocks and a ChatGPT-controlled co-driver car.</p></div></div>
 <script>
 (()=>{const c=document.getElementById('game'),g=c.getContext('2d'),$=id=>document.getElementById(id);
 let W,H,D;function resize(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;g.setTransform(D,0,0,D,0,0)}addEventListener('resize',resize);resize();
 const inp={l:false,r:false,n:false};const player={x:-.06,vx:0,speed:0,dist:0};const rival={x:.20,vx:0,speed:0,dist:70};let chatPilot={enabled:true,decision:0,next:0,nitro:0};
 const TRACK=30000,LAP=30000,CAR_W=.12,CAR_L=92;
 const obstacles=[850,1250,1650,2050,2450,2850,3250,3650,4100,4500,4900,5350,5800,6250,6700,7150,7600,8050,8500,8950,9400,9850,10300,10750,11200,11650,12100].map((d,i)=>({d,x:[-.34,.34,-.29,.30,-.24,.22,.35,-.32,.28,-.36,.31,-.26,.34,-.30,.24,.36,-.28,.27,-.35,.32,-.25,.30,-.34,.26,.35,-.31,.29][i]}));
+// Pedestrians appear only after 20.00 km and may step onto the road.
+const humans=Array.from({length:14},(_,i)=>({d:20500+i*570,x:[-.46,.43,-.39,.37,-.45,.41,-.36,.44,-.42,.38,-.40,.45,-.35,.41][i],dir:i%2? -1:1,speed:0.075+(i%3)*0.018}));
 let running=false,last=0,nitro=100,nitroTime=0,tilt=0,tiltOK=false,aiMood=0,aiCooldown=0,hitFlash=0,sceneryDist=0;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const BACKEND_URL="https://studious-octo-fishstick-9.onrender.com";
@@ -72,7 +74,24 @@ function aiDriverLogic(dt){
 
 function reset(){Object.assign(player,{x:-.06,vx:0,speed:0,dist:0});Object.assign(rival,{x:.20,vx:0,speed:0,dist:70});chatPilot={enabled:true,decision:0,next:0,nitro:0};sceneryDist=0;nitro=100;nitroTime=0;aiMood=0;aiCooldown=0;hitFlash=0}
 async function enableTilt(){try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function')tiltOK=(await DeviceOrientationEvent.requestPermission())==='granted';else tiltOK='DeviceOrientationEvent'in window}catch(e){tiltOK=false}}
-function finish(title,reason){running=false;inp.n=false;$('menu').classList.remove('hide');$('title').textContent=title;$('sub').textContent=reason;$('result').classList.remove('hide');$('result').textContent=title.includes('CRASH')?'💥 ROCK COLLISION':'🏁 FINISH';$('start').textContent='↻ REMATCH / RESTART';$('start').style.display='inline-block'}
+let finishTimer=null;
+function finish(title,reason){
+  running=false;inp.n=false;
+  if(finishTimer)clearTimeout(finishTimer);
+  $('menu').classList.remove('hide');
+  $('title').textContent=title;
+  $('sub').textContent=reason;
+  $('result').classList.remove('hide');
+  $('result').textContent=title.includes('YOU WIN')?'🏆 YOU WIN!':title.includes('AI WINS')?'🔵 LUMIRA AI WINS':'💥 GAME OVER';
+  $('start').style.display='none';
+  finishTimer=setTimeout(()=>{
+    $('title').textContent='🏎️ LUMIRA RACING';
+    $('sub').textContent='Ready for a new 30 km race';
+    $('result').classList.add('hide');
+    $('start').textContent='▶ START GAME';
+    $('start').style.display='inline-block';
+  },10000);
+}
 function start(ev){if(ev){ev.preventDefault();ev.stopPropagation();}if(running)return;reset();running=true;$('menu').classList.add('hide');last=performance.now();requestAnimationFrame(loop);enableTilt();}
 $('start').addEventListener('click',start,{passive:false});$('start').addEventListener('pointerdown',start,{passive:false});$('start').addEventListener('touchstart',start,{passive:false});$('start').addEventListener('pointerup',start,{passive:false});$('start').addEventListener('touchend',start,{passive:false});$('menu').addEventListener('pointerdown',e=>{if(e.target!==$('start')&&e.target.closest('.card'))start(e)},{passive:false});
 [['left','l'],['right','r'],['nitro','n']].forEach(([id,key])=>{const e=$(id);e.addEventListener('pointerdown',ev=>{ev.preventDefault();inp[key]=true});['pointerup','pointercancel','pointerleave'].forEach(t=>e.addEventListener(t,()=>inp[key]=false))});
@@ -113,6 +132,7 @@ function drawTree(x,y,s){g.save();g.translate(x,y);g.scale(s,s);g.fillStyle='#5a
 function drawHouse(x,y,s,flip=false){g.save();g.translate(x,y);g.scale((flip?-1:1)*s,s);g.fillStyle='#d7bd91';g.fillRect(-28,-2,56,31);g.fillStyle='#9a4638';g.beginPath();g.moveTo(-36,-2);g.lineTo(0,-30);g.lineTo(36,-2);g.closePath();g.fill();g.fillStyle='#61382c';g.fillRect(-7,13,14,16);g.fillStyle='#91d8e8';g.fillRect(-21,5,11,10);g.fillRect(10,5,11,10);g.fillStyle='#eee';g.globalAlpha=.35;g.fillRect(-25,1,50,3);g.globalAlpha=1;g.restore()}
 function drawCloud(x,y,s){g.save();g.translate(x,y);g.scale(s,s);g.fillStyle='rgba(255,255,255,.9)';g.beginPath();g.arc(-24,5,16,0,Math.PI*2);g.arc(-5,-4,22,0,Math.PI*2);g.arc(17,4,17,0,Math.PI*2);g.arc(34,9,11,0,Math.PI*2);g.fill();g.restore()}
 function drawBird(x,y,s){g.save();g.translate(x,y);g.scale(s,s);g.strokeStyle='#263746';g.lineWidth=4.2;g.lineCap='round';g.beginPath();g.moveTo(-12,2);g.quadraticCurveTo(-5,-11,0,0);g.quadraticCurveTo(6,-11,12,2);g.stroke();g.restore()}
+function drawHuman(x,y,s,step=0){g.save();g.translate(x,y);g.scale(s,s);const swing=Math.sin(step)*7;g.strokeStyle='#17202a';g.lineWidth=4;g.lineCap='round';g.beginPath();g.moveTo(0,-18);g.lineTo(0,4);g.moveTo(0,4);g.lineTo(-8+swing,20);g.moveTo(0,4);g.lineTo(8-swing,20);g.moveTo(0,-8);g.lineTo(-9-swing*.35,4);g.moveTo(0,-8);g.lineTo(9+swing*.35,4);g.stroke();g.fillStyle='#ffd2a6';g.beginPath();g.arc(0,-27,7,0,Math.PI*2);g.fill();g.fillStyle='#e34b4b';g.fillRect(-6,-18,12,15);g.restore()}
 function drawScenery(){const roadW=canvas.width*.62, left=canvas.width/2-roadW/2, right=canvas.width/2+roadW/2;g.save();g.fillStyle='#79ad55';g.fillRect(0,0,canvas.width,canvas.height);for(let i=0;i<9;i++){const p=i/9, y=90+p*p*canvas.height*.72, s=.35+p*.85, spread=70+p*115;drawTree(left-spread,y,s);drawTree(right+spread,y,s);if(i%2===0){drawHouse(left-spread-65,y+12,s*.8,i%4===0);drawHouse(right+spread+65,y+12,s*.8,i%4!==0)}}for(let i=0;i<5;i++){const x=canvas.width*(.12+i*.19), y=55+Math.sin(i*2)*20;drawBird(x,y,.45+i*.05)}g.restore()}
 function draw(){g.clearRect(0,0,W,H);const horizon=H*.25;
 let sky=g.createLinearGradient(0,0,0,horizon);sky.addColorStop(0,'#5fd2ff');sky.addColorStop(1,'#e8fbff');g.fillStyle=sky;g.fillRect(0,0,W,horizon);
@@ -187,6 +207,8 @@ const skyT=performance.now()*.00008;
 for(let i=0;i<4;i++){const base=W*(.08+i*.27);const drift=((skyT*(.75+i*.12)+i*.19)%1)*W*.32;const x=(base+drift)%W;const y=52+(i%2)*30+Math.sin(skyT*1.2+i)*3;drawCloud(x,y,.55+(i%2)*.12)}
 for(let i=0;i<5;i++){const t=(performance.now()*.000028+i*.23)%1;const side=i%2===0?-1:1;const baseX=side<0?W*(.10+i*.025):W*(.90-i*.025);const x=baseX+side*t*W*.20;const y=62+(i%3)*24-Math.sin(t*Math.PI)*14+Math.sin(skyT*2+i)*2;drawBird(x,y,.95+i*.04)}
 for(const o of obstacles){const od=o.d-player.dist;if(od>-700&&od<1900){const oy=playerY-od*.22,ox=W/2+o.x*roadHalf,os=clamp(1.18-Math.abs(od)/2600*.18,.72,1.18);drawRock(ox,oy,os)}}
+// Pedestrians are visible from 20 km onward. Some move toward/away from the road.
+for(const h of humans){const od=h.d-player.dist;if(od>-500&&od<2100&&player.dist>=20000){const hy=playerY-od*.22;const hx=W/2+h.x*roadHalf;const hs=clamp(1.05-Math.abs(od)/2800*.25,.48,1.05);drawHuman(hx,hy,hs,performance.now()*.008+h.d*.01)}}
 if(rivalY>-130&&rivalY<H+130){drawCar(rivalX,rivalY,'#168cff',clamp(1.18-Math.abs(rel)/2600*.18,.88,1.18))}
 
 // ===== 30 KM FINISH ZONE =====
@@ -253,6 +275,13 @@ for(const o of obstacles){const od=o.d-rival.dist;if(od>0&&od<360&&Math.abs(o.x-
 if(ahead>0&&ahead<320&&Math.abs(player.x-rival.x)<.24)targetSpeed+=30;
 targetSpeed=clamp(targetSpeed,205,360);rival.speed+=(targetSpeed-rival.speed)*Math.min(1,dt*(targetSpeed>rival.speed?3.2:3.8));rival.speed=clamp(rival.speed,0,360);
 const desiredX=clamp(bestLane,-.42,.42);rival.vx+=(desiredX-rival.x)*7.2*dt;rival.vx*=Math.pow(.0025,dt);rival.x=clamp(rival.x+rival.vx*dt,-.42,.42);if(Math.abs(rival.x)>.40)rival.speed=Math.max(0,rival.speed-55*dt);rival.dist+=rival.speed*dt;
+for(const h of humans){
+  if(h.d<20000) continue;
+  h.x += h.dir*h.speed*dt;
+  if(h.x>0.47){h.x=0.47;h.dir=-1}
+  if(h.x<-0.47){h.x=-0.47;h.dir=1}
+}
+for(const h of humans){const hd=h.d-player.dist;if(player.dist>=20000&&Math.abs(hd)<70&&Math.abs(h.x-player.x)<.095){finish('💥 GAME OVER','You hit a pedestrian on the road');return}}
 for(const o of obstacles){const od=o.d-player.dist;if(Math.abs(od)<CAR_L*.66&&Math.abs(o.x-player.x)<CAR_W*.95){finish('💥 GAME OVER','You hit a rock hazard');return}}
 const dz=rival.dist-player.dist,dx=Math.abs(rival.x-player.x);if(Math.abs(dz)<CAR_L&&dx<CAR_W){const push=player.x<rival.x?-1:1;player.vx+=push*2.5;rival.vx-=push*2.0;player.speed*=.92;rival.speed*=.94;hitFlash=.42}
 hitFlash=Math.max(0,hitFlash-dt);$('you').textContent=Math.round(player.speed);$('ai').textContent=Math.round(rival.speed);$('speed').textContent=Math.round(player.speed);$('distance').textContent=(Math.min(TRACK,player.dist)/1000).toFixed(2)+' / 30.00';$('lap').textContent='RACE';
