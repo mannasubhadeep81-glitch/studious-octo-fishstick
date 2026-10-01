@@ -81,7 +81,8 @@ const top=W*.14,bot=W*.37;g.fillStyle='#292f36';g.beginPath();g.moveTo(W/2-top,h
 g.strokeStyle='#e24b50';g.lineWidth=8;for(const side of[-1,1]){g.beginPath();g.moveTo(W/2+side*top,horizon);g.lineTo(W/2+side*bot,H);g.stroke()}
 g.strokeStyle='#f5ed62';g.lineWidth=4;g.setLineDash([24,28]);g.lineDashOffset=-(player.dist%52);g.beginPath();g.moveTo(W/2,horizon);g.lineTo(W/2,H);g.stroke();g.setLineDash([]);
 const rel=rival.dist-player.dist,roadHalf=W*.37,playerY=H*.78,rivalY=playerY-rel*.22,rivalX=W/2+rival.x*roadHalf,playerX=W/2+player.x*roadHalf;
-for(let i=0;i<20;i++){const d=Math.floor(player.dist/150)*150+i*150+70,od=d-player.dist;if(od>-450&&od<2300){const y=playerY-od*.22,s=clamp(1.25-Math.abs(od)/2600*.52,.28,1.25),side=i%2?-1:1,edge=roadHalf+55+s*48;drawTree(W/2+side*edge,y-28,s);if(i%4===0)drawHouse(W/2+side*(edge+58+s*30),y+8,s*.72,side<0)}}
+const sceneT=performance.now()*.001;
+for(let i=0;i<20;i++){const d=Math.floor(player.dist/150)*150+i*150+70,od=d-player.dist;if(od>-450&&od<2300){const y=playerY-od*.22,s=clamp(1.25-Math.abs(od)/2600*.52,.28,1.25),side=i%2?-1:1,edge=roadHalf+55+s*48;const wind=Math.sin(sceneT*1.35+i*.72)*3.5*s;drawTree(W/2+side*edge+wind,y-28,s);if(i%4===0)drawHouse(W/2+side*(edge+58+s*30)+wind*.45,y+8,s*.72,side<0)}}
 const skyT=performance.now()*.00008;
 for(let i=0;i<4;i++){const base=W*(.08+i*.27);const drift=((skyT*(.75+i*.12)+i*.19)%1)*W*.32;const x=(base+drift)%W;const y=52+(i%2)*30+Math.sin(skyT*1.2+i)*3;drawCloud(x,y,.55+(i%2)*.12)}
 for(let i=0;i<5;i++){const t=(performance.now()*.000028+i*.23)%1;const side=i%2===0?-1:1;const baseX=side<0?W*(.10+i*.025):W*(.90-i*.025);const x=baseX+side*t*W*.20;const y=62+(i%3)*24-Math.sin(t*Math.PI)*14+Math.sin(skyT*2+i)*2;drawBird(x,y,.95+i*.04)}
