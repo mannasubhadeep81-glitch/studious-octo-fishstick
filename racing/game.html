@@ -38,8 +38,34 @@ addEventListener('keydown',e=>{if(e.key==='ArrowLeft')inp.l=true;if(e.key==='Arr
 addEventListener('keyup',e=>{if(e.key==='ArrowLeft')inp.l=false;if(e.key==='ArrowRight')inp.r=false;if(e.code==='Space')inp.n=false});
 let drag=false;c.addEventListener('pointerdown',()=>{if(running)drag=true});c.addEventListener('pointermove',e=>{if(!running||!drag)return;const r=c.getBoundingClientRect();player.x=clamp(((e.clientX-r.left)/r.width-.5)*1.15,-.43,.43);player.vx=0});['pointerup','pointercancel'].forEach(t=>c.addEventListener(t,()=>drag=false));
 function rounded(x,y,w,h,r){g.beginPath();g.roundRect(x,y,w,h,r)}
-function drawCar(x,y,color,scale=1){g.save();g.translate(x,y);g.scale(scale,scale);g.shadowColor='#000b';g.shadowBlur=18;g.shadowOffsetY=10;g.fillStyle='#05080c';rounded(-34,-46,68,92,13);g.fill();g.shadowColor='transparent';g.fillStyle=color;rounded(-29,-42,58,84,11);g.fill();g.fillStyle='#0a1825';rounded(-19,-31,38,27,7);g.fill();g.fillStyle='#bfeeff';g.globalAlpha=.75;rounded(-14,-27,28,14,4);g.fill();g.globalAlpha=1;g.fillStyle='#111';for(const yy of[-33,18]){rounded(-35,yy,9,17,4);g.fill();rounded(26,yy,9,17,4);g.fill()}g.fillStyle='#fff';g.globalAlpha=.8;g.fillRect(-22,34,44,3);g.restore()}
-function drawRock(x,y,scale){g.save();g.translate(x,y);g.scale(scale,scale);g.shadowColor='#000b';g.shadowBlur=15;g.shadowOffsetY=8;g.fillStyle='#222';g.beginPath();g.moveTo(-44,16);g.lineTo(-32,-19);g.lineTo(-8,-30);g.lineTo(18,-21);g.lineTo(42,9);g.lineTo(25,29);g.lineTo(-22,26);g.closePath();g.fill();g.shadowColor='transparent';g.fillStyle='#777';g.beginPath();g.moveTo(-32,-19);g.lineTo(-8,-30);g.lineTo(18,-21);g.lineTo(7,-2);g.lineTo(-16,5);g.closePath();g.fill();g.fillStyle='#aaa';g.beginPath();g.arc(-13,-10,5,0,Math.PI*2);g.fill();g.restore()}
+function drawCar(x,y,color,scale=1){
+g.save();g.translate(x,y);g.scale(scale,scale);
+g.shadowColor='#000c';g.shadowBlur=20;g.shadowOffsetY=11;
+g.fillStyle='#05070a';rounded(-35,-48,70,96,18);g.fill();
+g.shadowColor='transparent';
+/* aerodynamic sports-car body */
+g.fillStyle=color;g.beginPath();
+g.moveTo(0,-49);g.bezierCurveTo(22,-46,31,-31,32,-8);
+g.lineTo(30,29);g.bezierCurveTo(28,43,18,49,0,51);
+g.bezierCurveTo(-18,49,-28,43,-30,29);g.lineTo(-32,-8);
+g.bezierCurveTo(-31,-31,-22,-46,0,-49);g.closePath();g.fill();
+/* body highlight */
+g.fillStyle='#ffffff';g.globalAlpha=.18;g.beginPath();g.moveTo(-20,-38);g.quadraticCurveTo(0,-49,20,-38);g.lineTo(15,25);g.quadraticCurveTo(0,35,-15,25);g.closePath();g.fill();g.globalAlpha=1;
+/* black roof + windshield */
+g.fillStyle='#07121c';g.beginPath();g.moveTo(-20,-28);g.quadraticCurveTo(0,-40,20,-28);g.lineTo(15,1);g.quadraticCurveTo(0,8,-15,1);g.closePath();g.fill();
+g.fillStyle='#9eeaff';g.globalAlpha=.72;g.beginPath();g.moveTo(-14,-27);g.quadraticCurveTo(0,-34,14,-27);g.lineTo(11,-7);g.quadraticCurveTo(0,-2,-11,-7);g.closePath();g.fill();g.globalAlpha=1;
+/* center body line */
+g.strokeStyle='#ffffff55';g.lineWidth=1.5;g.beginPath();g.moveTo(0,-45);g.lineTo(0,45);g.stroke();
+/* headlights */
+for(const sx of[-1,1]){g.fillStyle='#f7fbff';g.shadowColor='#bff6ff';g.shadowBlur=9;g.beginPath();g.ellipse(sx*18,-29,7,4,0,0,Math.PI*2);g.fill();g.shadowColor='transparent'}
+/* rear light */
+g.fillStyle='#ff3944';g.fillRect(-18,35,36,4);
+/* wheels */
+g.fillStyle='#08090b';for(const yy of[-27,20]){rounded(-37,yy,10,22,4);g.fill();rounded(27,yy,10,22,4);g.fill()}
+g.fillStyle='#bfc7ce';for(const yy of[-24,23]){g.beginPath();g.arc(-32,yy+5,3,0,Math.PI*2);g.fill();g.beginPath();g.arc(32,yy+5,3,0,Math.PI*2);g.fill()}
+/* side mirrors */
+g.fillStyle=color;rounded(-35,-17,8,11,3);g.fill();rounded(27,-17,8,11,3);g.fill();
+g.restore()}function drawRock(x,y,scale){g.save();g.translate(x,y);g.scale(scale,scale);g.shadowColor='#000b';g.shadowBlur=15;g.shadowOffsetY=8;g.fillStyle='#222';g.beginPath();g.moveTo(-44,16);g.lineTo(-32,-19);g.lineTo(-8,-30);g.lineTo(18,-21);g.lineTo(42,9);g.lineTo(25,29);g.lineTo(-22,26);g.closePath();g.fill();g.shadowColor='transparent';g.fillStyle='#777';g.beginPath();g.moveTo(-32,-19);g.lineTo(-8,-30);g.lineTo(18,-21);g.lineTo(7,-2);g.lineTo(-16,5);g.closePath();g.fill();g.fillStyle='#aaa';g.beginPath();g.arc(-13,-10,5,0,Math.PI*2);g.fill();g.restore()}
 function drawTree(x,y,s){g.save();g.translate(x,y);g.scale(s,s);g.fillStyle='#533820';g.fillRect(-5,-3,10,34);g.fillStyle='#116b39';g.beginPath();g.arc(0,-18,25,0,Math.PI*2);g.fill();g.fillStyle='#16874a';g.beginPath();g.arc(-14,-5,19,0,Math.PI*2);g.arc(14,-5,19,0,Math.PI*2);g.fill();g.restore()}
 function draw(){g.clearRect(0,0,W,H);const horizon=H*.25;
 let sky=g.createLinearGradient(0,0,0,horizon);sky.addColorStop(0,'#5fd2ff');sky.addColorStop(1,'#e8fbff');g.fillStyle=sky;g.fillRect(0,0,W,horizon);
