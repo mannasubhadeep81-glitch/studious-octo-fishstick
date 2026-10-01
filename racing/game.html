@@ -1,7 +1,7 @@
 <!doctype html>
 <html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>LUMIRA Racing V84 • OPENAI AI</title>
+<title>LUMIRA Racing V85 • OPENAI AI</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071018;color:#fff;font-family:system-ui,-apple-system,sans-serif}
 canvas{display:block;width:100%;height:100%;touch-action:none}
@@ -18,7 +18,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 <div class="hud"><span class="pill">🔴 YOU <b id="you">0</b> km/h</span><span class="pill">📏 <b id="distance">0.00 / 2.00</b> km</span><span class="pill">🔵 AI <b id="ai">0</b> km/h</span></div>
 <div class="speed"><div style="text-align:center"><b id="speed">0</b><br><small>KM/H</small></div></div>
 <div class="controls"><div class="steer"><button class="btn" id="left">◀</button><button class="btn" id="right">▶</button></div><button class="btn nitro" id="nitro">⚡<br>NITRO</button></div>
-<div id="menu" class="menu"><div class="card"><h1 id="title">🏎️ YOU vs LUMIRA AI</h1><p id="sub">V84 • CLEAR 2 KM FINISH</p><div id="result" class="result hide"></div><button id="start">▶ START DUEL</button><p class="small">Fast acceleration, visible speed feedback, timed Nitro, realistic roadside scenery, dangerous rocks and a ChatGPT-controlled co-driver car.</p></div></div>
+<div id="menu" class="menu"><div class="card"><h1 id="title">🏎️ YOU vs LUMIRA AI</h1><p id="sub">V85 • FINISH AFTER 2 KM</p><div id="result" class="result hide"></div><button id="start">▶ START DUEL</button><p class="small">Fast acceleration, visible speed feedback, timed Nitro, realistic roadside scenery, dangerous rocks and a ChatGPT-controlled co-driver car.</p></div></div>
 <script>
 (()=>{const c=document.getElementById('game'),g=c.getContext('2d'),$=id=>document.getElementById(id);
 let W,H,D;function resize(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;g.setTransform(D,0,0,D,0,0)}addEventListener('resize',resize);resize();
@@ -189,28 +189,28 @@ for(let i=0;i<5;i++){const t=(performance.now()*.000028+i*.23)%1;const side=i%2=
 for(const o of obstacles){const od=o.d-player.dist;if(od>-700&&od<1900){const oy=playerY-od*.22,ox=W/2+o.x*roadHalf,os=clamp(1.18-Math.abs(od)/2600*.18,.72,1.18);drawRock(ox,oy,os)}}
 if(rivalY>-130&&rivalY<H+130){drawCar(rivalX,rivalY,'#168cff',clamp(1.18-Math.abs(rel)/2600*.18,.88,1.18))}
 
-// ===== CLEAR 2 KM FINISH LINE =====
-const finishRemaining=TRACK-player.dist;
-if(finishRemaining>0&&finishRemaining<1800){
-  const fy=H*.78-Math.max(0,finishRemaining)*.22;
+// ===== 2 KM FINISH ZONE =====
+// No finish line is rendered during the first 2.00 km.
+// It appears only after the car reaches 2.00 km, then crossing the physical
+// finish line completes the race.
+const finishPassed=player.dist>=TRACK;
+if(finishPassed){
+  const finishProgress=Math.min(1,(player.dist-TRACK)/260);
+  const fy=H*.78-Math.min(190,finishProgress*190);
   const fw=W*.37;
   g.save();
-  // large checkered finish banner
-  g.fillStyle='#ffffff';
-  g.fillRect(W/2-fw,fy-14,fw*2,28);
-  const sq=Math.max(14,Math.min(30,fw/8));
+  g.fillStyle='#fff'; g.fillRect(W/2-fw,fy-16,fw*2,32);
+  const sq=Math.max(14,Math.min(28,fw/9));
   for(let col=0;col<Math.ceil((fw*2)/sq);col++){
     for(let row=0;row<2;row++){
-      if((col+row)%2===0){g.fillStyle='#111';g.fillRect(W/2-fw+col*sq,fy-14+row*14,sq,14);}
+      if((col+row)%2===0){g.fillStyle='#111';g.fillRect(W/2-fw+col*sq,fy-16+row*16,sq,16);}
     }
   }
-  g.strokeStyle='#ffd400';g.lineWidth=5;
-  g.strokeRect(W/2-fw,fy-14,fw*2,28);
-  // overhead sign
-  g.fillStyle='#07121d';g.fillRect(W/2-105,fy-70,210,38);
-  g.strokeStyle='#ffffff';g.lineWidth=3;g.strokeRect(W/2-105,fy-70,210,38);
+  g.strokeStyle='#ffd400';g.lineWidth=5;g.strokeRect(W/2-fw,fy-16,fw*2,32);
+  g.fillStyle='#07121d';g.fillRect(W/2-115,fy-76,230,40);
+  g.strokeStyle='#fff';g.lineWidth=3;g.strokeRect(W/2-115,fy-76,230,40);
   g.fillStyle='#fff';g.font='900 17px system-ui';g.textAlign='center';g.textBaseline='middle';
-  g.fillText('🏁 FINISH — 2.00 KM',W/2,fy-51);
+  g.fillText('🏁 FINISH — 2.00 KM',W/2,fy-56);
   g.restore();
 }
 drawCar(playerX,playerY,'#ef2630',1.18);
@@ -256,7 +256,13 @@ const desiredX=clamp(bestLane,-.42,.42);rival.vx+=(desiredX-rival.x)*7.2*dt;riva
 for(const o of obstacles){const od=o.d-player.dist;if(Math.abs(od)<CAR_L*.66&&Math.abs(o.x-player.x)<CAR_W*.95){finish('💥 GAME OVER','You hit a rock hazard');return}}
 const dz=rival.dist-player.dist,dx=Math.abs(rival.x-player.x);if(Math.abs(dz)<CAR_L&&dx<CAR_W){const push=player.x<rival.x?-1:1;player.vx+=push*2.5;rival.vx-=push*2.0;player.speed*=.92;rival.speed*=.94;hitFlash=.42}
 hitFlash=Math.max(0,hitFlash-dt);$('you').textContent=Math.round(player.speed);$('ai').textContent=Math.round(rival.speed);$('speed').textContent=Math.round(player.speed);$('distance').textContent=(Math.min(TRACK,player.dist)/1000).toFixed(2)+' / 2.00';$('lap').textContent='RACE';
-if(player.dist>=TRACK||rival.dist>=TRACK){if(player.dist>=TRACK&&player.dist>rival.dist)finish('🏆 YOU WIN!','You crossed the 2.00 km finish line first');else finish('🔵 LUMIRA AI WINS','LUMIRA AI crossed the 2.00 km finish line first')}
+// The 2.00 km mark only activates the finish zone; crossing the finish line
+// requires an additional physical crossing distance.
+const FINISH_CROSS=220;
+if(player.dist>=TRACK+FINISH_CROSS||rival.dist>=TRACK+FINISH_CROSS){
+  if(player.dist>=TRACK+FINISH_CROSS&&player.dist>rival.dist)finish('🏆 YOU WIN!','You crossed the finish line after completing 2.00 km');
+  else finish('🔵 LUMIRA AI WINS','LUMIRA AI crossed the finish line after completing 2.00 km');
+}
 }
 function loop(now){if(!running)return;const dt=Math.min(.033,(now-last)/1000);last=now;update(dt);draw();if(running)requestAnimationFrame(loop)}draw();
 // Reliable page-load initialization for mobile browsers.
