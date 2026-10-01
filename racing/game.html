@@ -1,7 +1,7 @@
 <!doctype html>
 <html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>LUMIRA Racing V90 • OPENAI AI</title>
+<title>LUMIRA Racing V91 • OPENAI AI</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071018;color:#fff;font-family:system-ui,-apple-system,sans-serif}
 canvas{display:block;width:100%;height:100%;touch-action:none}
@@ -18,7 +18,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 <div class="hud"><span class="pill">🔴 YOU <b id="you">0</b> km/h</span><span class="pill">📏 <b id="distance">0.00 / 40.00</b> km</span><span class="pill">🔵 AI <b id="ai">0</b> km/h</span></div>
 <div class="speed"><div style="text-align:center"><b id="speed">0</b><br><small>KM/H</small></div></div>
 <div class="controls"><div class="steer"><button class="btn" id="left">◀</button><button class="btn" id="right">▶</button></div><button class="btn nitro" id="nitro">⚡<br>NITRO</button></div>
-<div id="menu" class="menu"><div class="card"><h1 id="title">🏎️ YOU vs LUMIRA AI</h1><p id="sub">V90 • FINISH AFTER 2 KM</p><div id="result" class="result hide"></div><button id="start">▶ START DUEL</button><p class="small">Fast acceleration, visible speed feedback, timed Nitro, realistic roadside scenery, dangerous rocks and a ChatGPT-controlled co-driver car.</p></div></div>
+<div id="menu" class="menu"><div class="card"><h1 id="title">🏎️ YOU vs LUMIRA AI</h1><p id="sub">V91 • FINISH AFTER 2 KM</p><div id="result" class="result hide"></div><button id="start">▶ START DUEL</button><p class="small">Fast acceleration, visible speed feedback, timed Nitro, realistic roadside scenery, dangerous rocks and a ChatGPT-controlled co-driver car.</p></div></div>
 <script>
 (()=>{const c=document.getElementById('game'),g=c.getContext('2d'),$=id=>document.getElementById(id);
 let W,H,D;function resize(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;g.setTransform(D,0,0,D,0,0)}addEventListener('resize',resize);resize();
@@ -72,8 +72,7 @@ function aiDriverLogic(dt){
 
 function reset(){Object.assign(player,{x:-.06,vx:0,speed:0,dist:0});Object.assign(rival,{x:.20,vx:0,speed:0,dist:70});chatPilot={enabled:true,decision:0,next:0,nitro:0};sceneryDist=0;nitro=100;nitroTime=0;aiMood=0;aiCooldown=0;hitFlash=0}
 async function enableTilt(){try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function')tiltOK=(await DeviceOrientationEvent.requestPermission())==='granted';else tiltOK='DeviceOrientationEvent'in window}catch(e){tiltOK=false}}
-let finishTimer=null;
-function finish(title,reason){running=false;inp.n=false;if(finishTimer)clearTimeout(finishTimer);$('menu').classList.remove('hide');$('title').textContent=title;$('sub').textContent=reason;$('result').classList.remove('hide');$('result').textContent=title.includes('CRASH')?'💥 ROCK COLLISION':'🏁 FINISH';$('start').textContent='↻ PLAY AGAIN';finishTimer=setTimeout(()=>{if(!running){$('result').classList.add('hide');$('title').textContent='LUMIRA RACING';$('sub').textContent='Ready for the next 40 km race';$('start').textContent='▶ START RACE';}},1400)}
+function finish(title,reason){running=false;inp.n=false;$('menu').classList.remove('hide');$('title').textContent=title;$('sub').textContent=reason;$('result').classList.remove('hide');$('result').textContent=title.includes('CRASH')?'💥 ROCK COLLISION':'🏁 FINISH';$('start').textContent='↻ REMATCH / RESTART';$('start').style.display='inline-block'}
 function start(ev){if(ev){ev.preventDefault();ev.stopPropagation();}if(running)return;reset();running=true;$('menu').classList.add('hide');last=performance.now();requestAnimationFrame(loop);enableTilt();}
 $('start').addEventListener('click',start,{passive:false});$('start').addEventListener('pointerdown',start,{passive:false});$('start').addEventListener('touchstart',start,{passive:false});$('start').addEventListener('pointerup',start,{passive:false});$('start').addEventListener('touchend',start,{passive:false});$('menu').addEventListener('pointerdown',e=>{if(e.target!==$('start')&&e.target.closest('.card'))start(e)},{passive:false});
 [['left','l'],['right','r'],['nitro','n']].forEach(([id,key])=>{const e=$(id);e.addEventListener('pointerdown',ev=>{ev.preventDefault();inp[key]=true});['pointerup','pointercancel','pointerleave'].forEach(t=>e.addEventListener(t,()=>inp[key]=false))});
