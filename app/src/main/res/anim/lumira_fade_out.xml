@@ -13,4 +13,5 @@
         android:pivotY="50%"
         android:toXScale="0.985"
         android:toYScale="0.985" />
+    <!-- LUMIRA transition animation -->
 </set>
