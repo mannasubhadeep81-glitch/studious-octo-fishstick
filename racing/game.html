@@ -87,7 +87,7 @@ for(let i=0;i<5;i++){const t=(performance.now()*.000035+i*.23)%1;const side=i%2=
 for(const o of obstacles){const od=o.d-player.dist;if(od>-700&&od<1900){const oy=playerY-od*.22,ox=W/2+o.x*roadHalf,os=clamp(1.18-Math.abs(od)/2600*.18,.72,1.18);drawRock(ox,oy,os)}}
 if(rivalY>-130&&rivalY<H+130){drawCar(rivalX,rivalY,'#168cff',clamp(1.18-Math.abs(rel)/2600*.18,.88,1.18))}
 drawCar(playerX,playerY,'#ef2630',1.18);
-if(nitroTime>0){g.fillStyle='#ff9f20';g.beginPath();g.moveTo(playerX-12,playerY+49);g.lineTo(playerX,playerY+112);g.lineTo(playerX+12,playerY+49);g.fill();g.fillStyle='#fff5a0';g.beginPath();g.moveTo(playerX-5,playerY+49);g.lineTo(playerX,playerY+88);g.lineTo(playerX+5,playerY+49);g.fill()}
+if(nitroTime>0&&nitro>0){g.fillStyle='#ff9f20';g.beginPath();g.moveTo(playerX-12,playerY+49);g.lineTo(playerX,playerY+112);g.lineTo(playerX+12,playerY+49);g.fill();g.fillStyle='#fff5a0';g.beginPath();g.moveTo(playerX-5,playerY+49);g.lineTo(playerX,playerY+88);g.lineTo(playerX+5,playerY+49);g.fill()}
 if(hitFlash>0){g.fillStyle='rgba(255,40,40,'+Math.min(.32,hitFlash)+')';g.fillRect(0,0,W,H)}
 }
 function update(dt){
@@ -116,10 +116,12 @@ for(const lane of aiLanes){
   const score=1000-risk-playerBlock-edgePenalty-smoothPenalty+overtakingBonus;
   if(score>bestScore){bestScore=score;bestLane=lane}
 }
-let targetSpeed=258+(aiMood>0?24:aiMood<0?-8:0)+(ahead>450?18:0)+(rival.dist>TRACK-900?35:0)-(roadRisk?55:0);
-for(const o of obstacles){const od=o.d-rival.dist;if(od>0&&od<360&&Math.abs(o.x-rival.x)<.20)targetSpeed-=70}
-if(ahead>0&&ahead<280&&Math.abs(player.x-rival.x)<.22)targetSpeed+=18;
-targetSpeed=clamp(targetSpeed,175,330);rival.speed+=(targetSpeed-rival.speed)*Math.min(1,dt*(targetSpeed>rival.speed?2.4:3.2));rival.speed=clamp(rival.speed,0,330);
+let targetSpeed=292+(aiMood>0?34:aiMood<0?8:0)+(ahead>250?34:0)+(ahead>700?22:0)+(rival.dist>TRACK-1100?42:0)-(roadRisk?45:0);
+if(ahead>0&&ahead<900)targetSpeed+=42;
+if(ahead>900)targetSpeed+=18;
+for(const o of obstacles){const od=o.d-rival.dist;if(od>0&&od<360&&Math.abs(o.x-rival.x)<.20)targetSpeed-=65}
+if(ahead>0&&ahead<320&&Math.abs(player.x-rival.x)<.24)targetSpeed+=30;
+targetSpeed=clamp(targetSpeed,205,360);rival.speed+=(targetSpeed-rival.speed)*Math.min(1,dt*(targetSpeed>rival.speed?3.2:3.8));rival.speed=clamp(rival.speed,0,360);
 const desiredX=clamp(bestLane,-.42,.42);rival.vx+=(desiredX-rival.x)*7.2*dt;rival.vx*=Math.pow(.0025,dt);rival.x=clamp(rival.x+rival.vx*dt,-.42,.42);if(Math.abs(rival.x)>.40)rival.speed=Math.max(0,rival.speed-55*dt);rival.dist+=rival.speed*dt;
 for(const o of obstacles){const od=o.d-player.dist;if(Math.abs(od)<CAR_L*.66&&Math.abs(o.x-player.x)<CAR_W*.95){finish('💥 GAME OVER','You hit a rock hazard');return}}
 const dz=rival.dist-player.dist,dx=Math.abs(rival.x-player.x);if(Math.abs(dz)<CAR_L&&dx<CAR_W){const push=player.x<rival.x?-1:1;player.vx+=push*1.5;rival.vx-=push*1.2;player.speed*=.76;rival.speed*=.80;hitFlash=.42}
