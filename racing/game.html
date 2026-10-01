@@ -1,7 +1,7 @@
 <!doctype html>
 <html><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>LUMIRA Racing V50 • SCENERY</title>
+<title>LUMIRA Racing V51 • SCENERY</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071018;color:#fff;font-family:system-ui,-apple-system,sans-serif}
 canvas{display:block;width:100%;height:100%;touch-action:none}
@@ -72,7 +72,7 @@ function drawBird(x,y,s){g.save();g.translate(x,y);g.scale(s,s);g.strokeStyle='#
 function drawScenery(){const roadW=canvas.width*.62, left=canvas.width/2-roadW/2, right=canvas.width/2+roadW/2;g.save();g.fillStyle='#79ad55';g.fillRect(0,0,canvas.width,canvas.height);for(let i=0;i<9;i++){const p=i/9, y=90+p*p*canvas.height*.72, s=.35+p*.85, spread=70+p*115;drawTree(left-spread,y,s);drawTree(right+spread,y,s);if(i%2===0){drawHouse(left-spread-65,y+12,s*.8,i%4===0);drawHouse(right+spread+65,y+12,s*.8,i%4!==0)}}for(let i=0;i<5;i++){const x=canvas.width*(.12+i*.19), y=55+Math.sin(i*2)*20;drawBird(x,y,.45+i*.05)}g.restore()}
 function draw(){g.clearRect(0,0,W,H);const horizon=H*.25;
 let sky=g.createLinearGradient(0,0,0,horizon);sky.addColorStop(0,'#5fd2ff');sky.addColorStop(1,'#e8fbff');g.fillStyle=sky;g.fillRect(0,0,W,horizon);
-g.fillStyle='#668d9a';g.beginPath();g.moveTo(0,horizon);g.lineTo(W*.22,horizon-80);g.lineTo(W*.43,horizon);g.lineTo(W*.68,horizon-110);g.lineTo(W,horizon);g.lineTo(W,H);g.lineTo(0,H);g.fill();
+g.fillStyle='#668d9a';g.beginPath();g.moveTo(0,horizon);g.lineTo(W*.20,horizon-82);g.lineTo(W*.34,horizon-28);g.lineTo(W*.44,horizon-8);g.lineTo(W*.50,horizon);g.lineTo(W*.56,horizon-8);g.lineTo(W*.66,horizon-28);g.lineTo(W*.80,horizon-82);g.lineTo(W,horizon);g.lineTo(W,H);g.lineTo(0,H);g.closePath();g.fill();
 g.fillStyle='#167845';g.fillRect(0,horizon,W,H-horizon);
 g.fillStyle='#4f8f3d';g.fillRect(0,horizon,W*.19,H-horizon);g.fillRect(W*.81,horizon,W*.19,H-horizon);
 for(let i=0;i<9;i++){const yy=horizon+35+i*((H-horizon-55)/9),sc=.55+i*.10;drawTree(55+(i%3)*55,yy,sc);drawTree(W-55-(i%3)*55,yy,sc);if(i%3===1){drawHouse(145,yy+5,sc*.7,false);drawHouse(W-145,yy+5,sc*.7,true)}}
