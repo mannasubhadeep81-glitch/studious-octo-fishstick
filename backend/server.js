@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 
 const app = express();
 const port = process.env.PORT || 10000;
+const AI_MODEL = process.env.OPENAI_MODEL || "gpt-5.6-luna";
+const decisionWindow = new Map();
 
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
@@ -19,6 +21,34 @@ app.get("/", (_req, res) => {
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", name: "Lumira AI Backend" });
+});
+
+app.post("/api/racing/decision", async (req, res) => {
+  try {
+    const now = Date.now();
+    const ip = req.ip || "unknown";
+    const lastCall = decisionWindow.get(ip) || 0;
+    if (now - lastCall < 1000) return res.status(429).json({ ok:false, error:"AI decision rate limit. Try again shortly." });
+    decisionWindow.set(ip, now);
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) return res.status(503).json({ ok:false, error:"LUMIRA AI is not connected yet. Add OPENAI_API_KEY to Render." });
+
+    const state = req.body?.state;
+    if (!state || typeof state !== "object") return res.status(400).json({ ok:false, error:"state is required." });
+
+    const client = new OpenAI({ apiKey });
+    const prompt = `You are the driving AI for a 2D arcade racing game. Return ONLY one JSON object, no markdown and no explanation. Choose the next driving action from lane -0.34, 0, or 0.34, plus nitro true/false. Avoid rocks, avoid collisions, and try to overtake the human when safe. State: ${JSON.stringify(state)}. Required JSON: {"lane":-0.34,"nitro":false}`;
+    const response = await client.responses.create({ model: AI_MODEL, input: prompt });
+    const raw = (response.output_text || "").trim().replace(/^```json\s*/,"").replace(/\s*```$/,"");
+    let decision;
+    try { decision = JSON.parse(raw); } catch { return res.status(502).json({ ok:false, error:"AI returned invalid driving decision." }); }
+    const lane = [-0.34,0,0.34].reduce((best,x)=>Math.abs(x-Number(decision.lane))<Math.abs(best-Number(decision.lane))?x:best,-0.34);
+    res.json({ ok:true, lane, nitro:Boolean(decision.nitro), model:AI_MODEL });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ ok:false, error:error?.message || "AI decision failed." });
+  }
 });
 
 app.post("/api/chat", async (req, res) => {
@@ -41,7 +71,7 @@ app.post("/api/chat", async (req, res) => {
 
     const client = new OpenAI({ apiKey });
     const response = await client.responses.create({
-      model: process.env.OPENAI_MODEL || "gpt-6-luna",
+      model: AI_MODEL,
       input
     });
 
