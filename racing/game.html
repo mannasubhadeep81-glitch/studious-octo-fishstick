@@ -209,7 +209,7 @@ for(let i=0;i<5;i++){const t=(performance.now()*.000028+i*.23)%1;const side=i%2=
 for(const o of obstacles){const od=o.d-player.dist;if(od>-700&&od<1900){const oy=playerY-od*.22,ox=W/2+o.x*(roadHalf+W*.045),os=clamp(.72-Math.abs(od)/2600*.10,.46,.72);drawRock(ox,oy,os*.30)}}
 // Pedestrians are visible from 20 km onward. Some move toward/away from the road.
 for(const h of humans){const od=h.d-player.dist;if(od>-500&&od<2100&&player.dist>=20000){const hy=playerY-od*.22;const hx=W/2+h.x*roadHalf;const hs=clamp(1.05-Math.abs(od)/2800*.25,.48,1.05);drawHuman(hx,hy,hs,performance.now()*.008+h.d*.01)}}
-if(rivalY>-130&&rivalY<H+130){drawCar(rivalX,rivalY,'#168cff',clamp(.94-Math.abs(rel)/2600*.10,.76,.94))}
+if(rivalY>-130&&rivalY<H+130){drawCar(rivalX,rivalY,'#168cff',clamp(.47-Math.abs(rel)/2600*.05,.38,.47))}
 
 // ===== 30 KM FINISH ZONE =====
 // No finish line is rendered during the first 20.00 km.
@@ -235,7 +235,7 @@ if(finishPassed){
   g.fillText('🏁 FINISH — 20.00 KM',W/2,fy-56);
   g.restore();
 }
-drawCar(playerX,playerY,'#ef2630',.96);
+drawCar(playerX,playerY,'#ef2630',.48);
 if(nitroTime>0&&nitro>0){g.fillStyle='#ff9f20';g.beginPath();g.moveTo(playerX-12,playerY+49);g.lineTo(playerX,playerY+112);g.lineTo(playerX+12,playerY+49);g.fill();g.fillStyle='#fff5a0';g.beginPath();g.moveTo(playerX-5,playerY+49);g.lineTo(playerX,playerY+88);g.lineTo(playerX+5,playerY+49);g.fill()}
 if(hitFlash>0){g.fillStyle='rgba(255,40,40,'+Math.min(.32,hitFlash)+')';g.fillRect(0,0,W,H)}
 }
