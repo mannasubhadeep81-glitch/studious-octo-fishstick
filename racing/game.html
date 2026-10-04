@@ -23,8 +23,8 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 (()=>{const c=document.getElementById('game'),g=c.getContext('2d'),$=id=>document.getElementById(id);
 let W,H,D;function resize(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;g.setTransform(D,0,0,D,0,0)}addEventListener('resize',resize);resize();
 const inp={l:false,r:false,n:false};const player={x:-.06,vx:0,speed:0,dist:0};const rival={x:.20,vx:0,speed:0,dist:70};let chatPilot={enabled:true,decision:0,next:0,nitro:0};
-const TRACK=20000,LAP=20000,CAR_W=.12,CAR_L=92;
-const obstacles=[850,1250,1650,2050,2450,2850,3250,3650,4100,4500,4900,5350,5800,6250,6700,7150,7600,8050,8500,8950,9400,9850,10300,10750,11200,11650,12100].map((d,i)=>({d,x:[-.34,.34,-.29,.30,-.24,.22,.35,-.32,.28,-.36,.31,-.26,.34,-.30,.24,.36,-.28,.27,-.35,.32,-.25,.30,-.34,.26,.35,-.31,.29][i]}));
+const TRACK=20000,LAP=20000,CAR_W=.105,CAR_L=78;
+const obstacles=[850,1250,1650,2050,2450,2850,3250,3650,4100,4500,4900,5350,5800,6250,6700,7150,7600,8050,8500,8950,9400,9850,10300,10750,11200,11650,12100].map((d,i)=>({d,x:[-.48,.49,-.46,.47,-.50,.48,.52,-.47,.49,-.51,.50,-.48,.52,-.49,.47,.51,-.46,.48,-.50,.49,-.47,.50,-.51,.48,.52,-.49,.47][i]}));
 // Pedestrians appear only after 20.00 km and may step onto the road.
 const humans=Array.from({length:18},(_,i)=>({d:15000+i*350,x:[-.46,.43,-.39,.37,-.45,.41,-.36,.44,-.42,.38,-.40,.45,-.35,.41][i],dir:i%2? -1:1,speed:0.075+(i%3)*0.018}));
 let running=false,last=0,nitro=100,nitroTime=0,tilt=0,tiltOK=false,aiMood=0,aiCooldown=0,hitFlash=0,sceneryDist=0;
@@ -206,10 +206,10 @@ for(let i=0;i<20;i++){const d=Math.floor(sceneryDist/150)*150+i*150+70,od=d-scen
 const skyT=performance.now()*.00008;
 for(let i=0;i<4;i++){const base=W*(.08+i*.27);const drift=((skyT*(.75+i*.12)+i*.19)%1)*W*.32;const x=(base+drift)%W;const y=52+(i%2)*30+Math.sin(skyT*1.2+i)*3;drawCloud(x,y,.55+(i%2)*.12)}
 for(let i=0;i<5;i++){const t=(performance.now()*.000028+i*.23)%1;const side=i%2===0?-1:1;const baseX=side<0?W*(.10+i*.025):W*(.90-i*.025);const x=baseX+side*t*W*.20;const y=62+(i%3)*24-Math.sin(t*Math.PI)*14+Math.sin(skyT*2+i)*2;drawBird(x,y,.95+i*.04)}
-for(const o of obstacles){const od=o.d-player.dist;if(od>-700&&od<1900){const oy=playerY-od*.22,ox=W/2+o.x*roadHalf,os=clamp(1.18-Math.abs(od)/2600*.18,.72,1.18);drawRock(ox,oy,os)}}
+for(const o of obstacles){const od=o.d-player.dist;if(od>-700&&od<1900){const oy=playerY-od*.22,ox=W/2+o.x*(roadHalf+W*.045),os=clamp(.72-Math.abs(od)/2600*.10,.46,.72);drawRock(ox,oy,os*.52)}}
 // Pedestrians are visible from 20 km onward. Some move toward/away from the road.
 for(const h of humans){const od=h.d-player.dist;if(od>-500&&od<2100&&player.dist>=20000){const hy=playerY-od*.22;const hx=W/2+h.x*roadHalf;const hs=clamp(1.05-Math.abs(od)/2800*.25,.48,1.05);drawHuman(hx,hy,hs,performance.now()*.008+h.d*.01)}}
-if(rivalY>-130&&rivalY<H+130){drawCar(rivalX,rivalY,'#168cff',clamp(1.18-Math.abs(rel)/2600*.18,.88,1.18))}
+if(rivalY>-130&&rivalY<H+130){drawCar(rivalX,rivalY,'#168cff',clamp(.94-Math.abs(rel)/2600*.10,.76,.94))}
 
 // ===== 30 KM FINISH ZONE =====
 // No finish line is rendered during the first 20.00 km.
@@ -235,7 +235,7 @@ if(finishPassed){
   g.fillText('🏁 FINISH — 20.00 KM',W/2,fy-56);
   g.restore();
 }
-drawCar(playerX,playerY,'#ef2630',1.18);
+drawCar(playerX,playerY,'#ef2630',.96);
 if(nitroTime>0&&nitro>0){g.fillStyle='#ff9f20';g.beginPath();g.moveTo(playerX-12,playerY+49);g.lineTo(playerX,playerY+112);g.lineTo(playerX+12,playerY+49);g.fill();g.fillStyle='#fff5a0';g.beginPath();g.moveTo(playerX-5,playerY+49);g.lineTo(playerX,playerY+88);g.lineTo(playerX+5,playerY+49);g.fill()}
 if(hitFlash>0){g.fillStyle='rgba(255,40,40,'+Math.min(.32,hitFlash)+')';g.fillRect(0,0,W,H)}
 }
@@ -282,7 +282,7 @@ for(const h of humans){
   if(h.x<-0.47){h.x=-0.47;h.dir=1}
 }
 for(const h of humans){const hd=h.d-player.dist;if(player.dist>=20000&&Math.abs(hd)<70&&Math.abs(h.x-player.x)<.095){finish('💥 GAME OVER','You hit a pedestrian on the road');return}}
-for(const o of obstacles){const od=o.d-player.dist;if(Math.abs(od)<CAR_L*.66&&Math.abs(o.x-player.x)<CAR_W*.95){finish('💥 GAME OVER','You hit a rock hazard');return}}
+for(const o of obstacles){const od=o.d-player.dist;if(Math.abs(od)<CAR_L*.66&&Math.abs(o.x-player.x)<CAR_W*.80){finish('💥 GAME OVER','You hit a rock hazard');return}}
 const dz=rival.dist-player.dist,dx=Math.abs(rival.x-player.x);if(Math.abs(dz)<CAR_L&&dx<CAR_W){const push=player.x<rival.x?-1:1;player.vx+=push*2.5;rival.vx-=push*2.0;player.speed*=.92;rival.speed*=.94;hitFlash=.42}
 hitFlash=Math.max(0,hitFlash-dt);$('you').textContent=Math.round(player.speed);$('ai').textContent=Math.round(rival.speed);$('speed').textContent=Math.round(player.speed);$('distance').textContent=(Math.min(TRACK,player.dist)/1000).toFixed(2)+' / 20.00';$('lap').textContent='RACE';
 // The 20.00 km mark only activates the finish zone; crossing the finish line
