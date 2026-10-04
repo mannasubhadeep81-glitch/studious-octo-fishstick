@@ -206,7 +206,7 @@ for(let i=0;i<20;i++){const d=Math.floor(sceneryDist/150)*150+i*150+70,od=d-scen
 const skyT=performance.now()*.00008;
 for(let i=0;i<4;i++){const base=W*(.08+i*.27);const drift=((skyT*(.75+i*.12)+i*.19)%1)*W*.32;const x=(base+drift)%W;const y=52+(i%2)*30+Math.sin(skyT*1.2+i)*3;drawCloud(x,y,.55+(i%2)*.12)}
 for(let i=0;i<5;i++){const t=(performance.now()*.000028+i*.23)%1;const side=i%2===0?-1:1;const baseX=side<0?W*(.10+i*.025):W*(.90-i*.025);const x=baseX+side*t*W*.20;const y=62+(i%3)*24-Math.sin(t*Math.PI)*14+Math.sin(skyT*2+i)*2;drawBird(x,y,.95+i*.04)}
-for(const o of obstacles){const od=o.d-player.dist;if(od>-700&&od<1900){const oy=playerY-od*.22,ox=W/2+o.x*(roadHalf+W*.045),os=clamp(.72-Math.abs(od)/2600*.10,.46,.72);drawRock(ox,oy,os*.52)}}
+for(const o of obstacles){const od=o.d-player.dist;if(od>-700&&od<1900){const oy=playerY-od*.22,ox=W/2+o.x*(roadHalf+W*.045),os=clamp(.72-Math.abs(od)/2600*.10,.46,.72);drawRock(ox,oy,os*.30)}}
 // Pedestrians are visible from 20 km onward. Some move toward/away from the road.
 for(const h of humans){const od=h.d-player.dist;if(od>-500&&od<2100&&player.dist>=20000){const hy=playerY-od*.22;const hx=W/2+h.x*roadHalf;const hs=clamp(1.05-Math.abs(od)/2800*.25,.48,1.05);drawHuman(hx,hy,hs,performance.now()*.008+h.d*.01)}}
 if(rivalY>-130&&rivalY<H+130){drawCar(rivalX,rivalY,'#168cff',clamp(.94-Math.abs(rel)/2600*.10,.76,.94))}
