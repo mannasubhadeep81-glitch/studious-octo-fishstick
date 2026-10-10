@@ -21,30 +21,40 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install download utilities
+        shell: bash
+        run: |
+          set -euxo pipefail
+          if ! command -v curl >/dev/null 2>&1; then
+            apt-get update
+            apt-get install -y curl unzip
+          fi
+          command -v curl
+          command -v unzip
+
       - name: Configure Android export tools
         working-directory: FighterArena
         shell: bash
         run: |
           set -euxo pipefail
-          mkdir -p build/templates
-          curl -fL --retry 3             https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz             -o build/export_templates.tpz
+          mkdir -p build/templates "$HOME/.config/godot" "$HOME/.android"
+          curl -fL --retry 3 "https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz" -o build/export_templates.tpz
           unzip -o build/export_templates.tpz -d build/templates
-          find build/templates -maxdepth 3 -type f | head -40
-          echo "JAVA_HOME=${JAVA_HOME:-unset}"
-          echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
-          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-unset}"
-          test -n "${JAVA_HOME:-}" && test -x "$JAVA_HOME/bin/java"
+          TEMPLATE_DIR="$(find build/templates -type f -name android_debug.apk -printf '%h\n' | head -1)"
+          test -n "$TEMPLATE_DIR"
+          test -f "$TEMPLATE_DIR/android_release.apk"
+          JAVA_PATH="${JAVA_HOME:-$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")}"
           SDK_PATH="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/lib/android-sdk}}"
+          test -x "$JAVA_PATH/bin/java"
           test -d "$SDK_PATH"
-          mkdir -p "$HOME/.config/godot" "$HOME/.android"
           cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
           [gd_resource type="EditorSettings" format=3]
 
           [resource]
           export/android/android_sdk_path = "$SDK_PATH"
-          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/java_sdk_path = "$JAVA_PATH"
           EOF
-          keytool -genkeypair -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000 || true
+          keytool -genkeypair -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
 
       - name: Export APK
         working-directory: FighterArena
@@ -53,7 +63,6 @@ jobs:
           set -euxo pipefail
           mkdir -p build
           TEMPLATE_DIR="$(find build/templates -type f -name android_debug.apk -printf '%h\n' | head -1)"
-          test -n "$TEMPLATE_DIR"
           sed -i "s|^custom_template/debug=.*|custom_template/debug=\"$TEMPLATE_DIR/android_debug.apk\"|" export_presets.cfg
           sed -i "s|^custom_template/release=.*|custom_template/release=\"$TEMPLATE_DIR/android_release.apk\"|" export_presets.cfg
           godot --headless --verbose --path . --editor --quit
