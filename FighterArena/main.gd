@@ -296,18 +296,20 @@ func _on_joystick_input(event: InputEvent) -> void:
     if event is InputEventScreenTouch:
         joystick_active = event.pressed
         if joystick_active:
-            _update_joystick(event.position)
+            _update_joystick(event.global_position)
         else:
             _reset_joystick()
     elif event is InputEventScreenDrag and joystick_active:
-        _update_joystick(event.position)
+        _update_joystick(event.global_position)
 
 func _update_joystick(point: Vector2) -> void:
-    var delta := point - joystick_center
+    # Screen input positions must be compared with the joystick's global position.
+    var center := joystick_base.global_position + joystick_base.size * 0.5
+    var delta := point - center
     var radius := 42.0
     if delta.length() > radius:
         delta = delta.normalized() * radius
-    joystick_knob.position = joystick_center + delta - joystick_knob.size * 0.5
+    joystick_knob.position = joystick_base.position + joystick_base.size * 0.5 + delta - joystick_knob.size * 0.5
     if absf(delta.x) > 10.0:
         _move(1.0 if delta.x > 0.0 else -1.0)
 
