@@ -377,10 +377,9 @@ func _burst_effect(pos: Vector3) -> void:
     fx.material_override = _mat(Color("#5de1ff"), 0.1, 0.15)
     add_child(fx)
     var tw := create_tween()
-    tw.set_parallel(true)
     tw.tween_property(fx, "scale", Vector3(1.7, 1.7, 1.7), 0.18)
-    tw.tween_property(fx, "transparency", 1.0, 0.22)
-    tw.chain().tween_callback(fx.queue_free)
+    tw.tween_interval(0.08)
+    tw.tween_callback(fx.queue_free)
 
 func _flash(target: Node3D) -> void:
     target.scale = Vector3(1.12, 0.9, 1.12)
