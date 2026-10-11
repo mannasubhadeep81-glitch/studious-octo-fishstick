@@ -30,6 +30,10 @@ var round_label: Label
 var block_button: Button
 var customize_button: Button
 var special_button: Button
+var joystick_base: Button
+var joystick_knob: Button
+var joystick_active := false
+var joystick_center := Vector2.ZERO
 
 func _ready() -> void:
     randomize()
@@ -245,23 +249,71 @@ func _build_hud() -> void:
     enemy_bar.custom_minimum_size = Vector2(100, 24)
     ebox.add_child(enemy_bar)
 
-    _make_control("LEFT", "left", Vector2(32, 560), 86, _move.bind(-1.0))
-    _make_control("RIGHT", "right", Vector2(130, 560), 86, _move.bind(1.0))
-    _make_control("BLOCK", "block", Vector2(870, 550), 94, _block_on)
-    _make_control("PUNCH", "punch", Vector2(972, 550), 94, _punch)
-    _make_control("KICK", "kick", Vector2(1074, 550), 94, _kick)
-    special_button = _make_control("SPECIAL", "special", Vector2(972, 460), 196, _special)
-    customize_button = _make_control("CUSTOMIZE", "customize", Vector2(32, 480), 110, _toggle_customize)
+    _build_joystick()
+    _make_control("PUNCH", "punch", Vector2(940, 500), 112, _punch)
+    _make_control("KICK", "kick", Vector2(1065, 500), 112, _kick)
+    _make_control("BLOCK", "block", Vector2(940, 585), 112, _block_on)
+    special_button = _make_control("SPECIAL", "special", Vector2(1065, 585), 112, _special)
+    customize_button = _make_control("CUSTOMIZE", "customize", Vector2(34, 585), 125, _toggle_customize)
 
     var hint := Label.new()
     hint.name = "Hint"
-    hint.text = "CUSTOMIZE: drag buttons • tap CUSTOMIZE again to save"
-    hint.position = Vector2(0, 685)
-    hint.size = Vector2(1280, 28)
+    hint.text = "MOVE  •  PUNCH  •  KICK  •  BLOCK  •  SPECIAL"
+    hint.position = Vector2(250, 675)
+    hint.size = Vector2(780, 26)
     hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     hint.add_theme_font_size_override("font_size", 12)
     hint.modulate = Color(0.62, 0.75, 0.95, 0.8)
     root_ui.add_child(hint)
+
+func _build_joystick() -> void:
+    joystick_base = Button.new()
+    joystick_base.name = "MoveJoystick"
+    joystick_base.text = "MOVE\n●"
+    joystick_base.position = Vector2(34, 455)
+    joystick_base.size = Vector2(150, 118)
+    joystick_base.add_theme_font_size_override("font_size", 17)
+    joystick_base.add_theme_color_override("font_color", Color.WHITE)
+    joystick_base.add_theme_color_override("font_hover_color", Color.WHITE)
+    root_ui.add_child(joystick_base)
+
+    joystick_knob = Button.new()
+    joystick_knob.name = "MoveKnob"
+    joystick_knob.text = "●"
+    joystick_knob.position = joystick_base.position + Vector2(58, 50)
+    joystick_knob.size = Vector2(34, 34)
+    joystick_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    joystick_knob.add_theme_font_size_override("font_size", 18)
+    joystick_knob.add_theme_color_override("font_color", Color("#5de1ff"))
+    root_ui.add_child(joystick_knob)
+
+    joystick_center = joystick_base.position + joystick_base.size * 0.5
+    joystick_base.gui_input.connect(_on_joystick_input)
+
+func _on_joystick_input(event: InputEvent) -> void:
+    if customizing:
+        return
+    if event is InputEventScreenTouch:
+        joystick_active = event.pressed
+        if joystick_active:
+            _update_joystick(event.position)
+        else:
+            _reset_joystick()
+    elif event is InputEventScreenDrag and joystick_active:
+        _update_joystick(event.position)
+
+func _update_joystick(point: Vector2) -> void:
+    var delta := point - joystick_center
+    var radius := 42.0
+    if delta.length() > radius:
+        delta = delta.normalized() * radius
+    joystick_knob.position = joystick_center + delta - joystick_knob.size * 0.5
+    if absf(delta.x) > 10.0:
+        _move(1.0 if delta.x > 0.0 else -1.0)
+
+func _reset_joystick() -> void:
+    joystick_active = false
+    joystick_knob.position = joystick_center - joystick_knob.size * 0.5
 
 func _make_control(text_value: String, key: String, pos: Vector2, width: float, callback: Callable) -> Button:
     var b := Button.new()
@@ -302,6 +354,8 @@ func _save_controls() -> void:
     var cfg := ConfigFile.new()
     for key in control_buttons:
         cfg.set_value("controls", key, control_buttons[key].position)
+    if joystick_base:
+        cfg.set_value("controls", "joystick", joystick_base.position)
     cfg.save(SAVE_PATH)
 
 func _load_controls() -> void:
@@ -310,6 +364,10 @@ func _load_controls() -> void:
         for key in control_buttons:
             if cfg.has_section_key("controls", key):
                 control_buttons[key].position = cfg.get_value("controls", key)
+        if joystick_base and cfg.has_section_key("controls", "joystick"):
+            joystick_base.position = cfg.get_value("controls", "joystick")
+            joystick_center = joystick_base.position + joystick_base.size * 0.5
+            _reset_joystick()
 
 func _face_fighters() -> void:
     if player and enemy:
