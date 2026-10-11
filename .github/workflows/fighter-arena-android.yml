@@ -75,6 +75,8 @@ jobs:
           unzip -o "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_source.zip" -d android/build
           sed -i "s|^custom_template/debug=.*|custom_template/debug=\"$TEMPLATE_DIR/android_debug.apk\"|" export_presets.cfg
           sed -i "s|^custom_template/release=.*|custom_template/release=\"$TEMPLATE_DIR/android_release.apk\"|" export_presets.cfg
+          sed -i 's|^gradle_build/use_gradle_build=.*|gradle_build/use_gradle_build=true|' export_presets.cfg
+          sed -i 's|^gradle_build/target_sdk=.*|gradle_build/target_sdk=33|' export_presets.cfg
           godot --headless --verbose --path . --editor --quit
           godot --headless --path . --export-debug Android build/FighterArena.apk
           test -s build/FighterArena.apk
