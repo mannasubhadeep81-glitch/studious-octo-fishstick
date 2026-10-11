@@ -46,6 +46,8 @@ jobs:
           mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
           cp "$TEMPLATE_DIR"/*.apk "$HOME/.local/share/godot/export_templates/4.4.1.stable/"
           if [ -f "$TEMPLATE_DIR/android_source.zip" ]; then cp "$TEMPLATE_DIR/android_source.zip" "$HOME/.local/share/godot/export_templates/4.4.1.stable/"; fi
+          mkdir -p android/build
+          unzip -o "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_source.zip" -d android/build
           JAVA_PATH="${JAVA_HOME:-$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")}"
           SDK_PATH="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/lib/android-sdk}}"
           test -x "$JAVA_PATH/bin/java"
@@ -69,6 +71,8 @@ jobs:
           mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
           cp "$TEMPLATE_DIR"/*.apk "$HOME/.local/share/godot/export_templates/4.4.1.stable/"
           cp "$TEMPLATE_DIR"/android_source.zip "$HOME/.local/share/godot/export_templates/4.4.1.stable/" 2>/dev/null || true
+          mkdir -p android/build
+          unzip -o "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_source.zip" -d android/build
           sed -i "s|^custom_template/debug=.*|custom_template/debug=\"$TEMPLATE_DIR/android_debug.apk\"|" export_presets.cfg
           sed -i "s|^custom_template/release=.*|custom_template/release=\"$TEMPLATE_DIR/android_release.apk\"|" export_presets.cfg
           godot --headless --verbose --path . --editor --quit
