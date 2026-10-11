@@ -40,14 +40,11 @@ jobs:
           mkdir -p build/templates "$HOME/.config/godot" "$HOME/.android"
           curl -fL --retry 3 "https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz" -o build/export_templates.tpz
           unzip -o build/export_templates.tpz -d build/templates
-          TEMPLATE_DIR="$(find build/templates -type f -name android_debug.apk -printf '%h\n' | head -1)"
+          TEMPLATE_DIR="$(find "$PWD/build/templates" -type f -name android_debug.apk -printf '%h\n' | head -1)"
           test -n "$TEMPLATE_DIR"
           test -f "$TEMPLATE_DIR/android_release.apk"
           mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
           cp "$TEMPLATE_DIR"/*.apk "$HOME/.local/share/godot/export_templates/4.4.1.stable/"
-          if [ -f "$TEMPLATE_DIR/android_source.zip" ]; then cp "$TEMPLATE_DIR/android_source.zip" "$HOME/.local/share/godot/export_templates/4.4.1.stable/"; fi
-          mkdir -p android/build
-          unzip -o "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_source.zip" -d android/build
           JAVA_PATH="${JAVA_HOME:-$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")}"
           SDK_PATH="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/lib/android-sdk}}"
           test -x "$JAVA_PATH/bin/java"
@@ -67,18 +64,16 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p build
-          TEMPLATE_DIR="$(find build/templates -type f -name android_debug.apk -printf '%h\n' | head -1)"
-          mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
-          cp "$TEMPLATE_DIR"/*.apk "$HOME/.local/share/godot/export_templates/4.4.1.stable/"
-          cp "$TEMPLATE_DIR"/android_source.zip "$HOME/.local/share/godot/export_templates/4.4.1.stable/" 2>/dev/null || true
-          mkdir -p android/build
-          unzip -o "$HOME/.local/share/godot/export_templates/4.4.1.stable/android_source.zip" -d android/build
+          TEMPLATE_DIR="$(find "$PWD/build/templates" -type f -name android_debug.apk -printf '%h\n' | head -1)"
+          test -f "$TEMPLATE_DIR/android_debug.apk"
+          test -f "$TEMPLATE_DIR/android_release.apk"
+          # Use Godot's standard APK-template export. Gradle mode requires a separate
+          # generated Android project and SDK target settings, which this preset lacks.
           sed -i "s|^custom_template/debug=.*|custom_template/debug=\"$TEMPLATE_DIR/android_debug.apk\"|" export_presets.cfg
           sed -i "s|^custom_template/release=.*|custom_template/release=\"$TEMPLATE_DIR/android_release.apk\"|" export_presets.cfg
-          sed -i 's|^gradle_build/use_gradle_build=.*|gradle_build/use_gradle_build=true|' export_presets.cfg
-          sed -i 's|^gradle_build/target_sdk=.*|gradle_build/target_sdk=33|' export_presets.cfg
+          sed -i 's|^gradle_build/use_gradle_build=.*|gradle_build/use_gradle_build=false|' export_presets.cfg
           godot --headless --verbose --path . --editor --quit
-          godot --headless --path . --export-debug Android build/FighterArena.apk
+          godot --headless --verbose --path . --export-debug Android "$PWD/build/FighterArena.apk"
           test -s build/FighterArena.apk
           ls -lh build/FighterArena.apk
 
