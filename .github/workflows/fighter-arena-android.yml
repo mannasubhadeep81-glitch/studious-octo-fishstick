@@ -51,14 +51,22 @@ jobs:
           test -d "$SDK_PATH"
           # Install the SDK packages required by Godot Android export.
           SDKMANAGER="$(find "$SDK_PATH" -type f -name sdkmanager 2>/dev/null | head -1 || true)"
-          if [ -n "$SDKMANAGER" ]; then
-            yes | "$SDKMANAGER" --licenses >/dev/null || true
-            "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
-          else
-            echo "sdkmanager not found under $SDK_PATH"
-            find "$SDK_PATH" -maxdepth 4 -type d | head -80
-            exit 1
+          if [ -z "$SDKMANAGER" ]; then
+            mkdir -p "$SDK_PATH/cmdline-tools"
+            curl -fL --retry 3 "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" -o build/android-commandlinetools.zip
+            mkdir -p build/android-commandlinetools
+            unzip -q -o build/android-commandlinetools.zip -d build/android-commandlinetools
+            rm -rf "$SDK_PATH/cmdline-tools/latest"
+            mkdir -p "$SDK_PATH/cmdline-tools/latest"
+            cp -R build/android-commandlinetools/cmdline-tools/. "$SDK_PATH/cmdline-tools/latest/"
+            SDKMANAGER="$SDK_PATH/cmdline-tools/latest/bin/sdkmanager"
           fi
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --sdk_root="$SDK_PATH" --licenses >/dev/null || true
+          "$SDKMANAGER" --sdk_root="$SDK_PATH" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          test -x "$SDK_PATH/platform-tools/adb"
+          test -x "$SDK_PATH/build-tools/35.0.0/apksigner"
+          test -d "$SDK_PATH/platforms/android-35"
           cat > "$HOME/.config/godot/editor_settings-4.4.tres" <<EOF
           [gd_resource type="EditorSettings" format=3]
 
