@@ -482,8 +482,8 @@ func _set_status(value: String) -> void:
 func _finish(won: bool) -> void:
     round_over = true
     _set_status("VICTORY!" if won else "DEFEAT  •  TRY AGAIN")
-    var p := control_buttons["punch"]
-    var k := control_buttons["kick"]
+    var p: Button = control_buttons["punch"] as Button
+    var k: Button = control_buttons["kick"] as Button
     p.text = "AGAIN"
     k.text = "AGAIN"
     p.pressed.disconnect(_punch)
