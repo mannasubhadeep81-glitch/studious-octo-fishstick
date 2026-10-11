@@ -49,6 +49,16 @@ jobs:
           SDK_PATH="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/lib/android-sdk}}"
           test -x "$JAVA_PATH/bin/java"
           test -d "$SDK_PATH"
+          # Install the SDK packages required by Godot Android export.
+          SDKMANAGER="$(find "$SDK_PATH" -type f -name sdkmanager 2>/dev/null | head -1 || true)"
+          if [ -n "$SDKMANAGER" ]; then
+            yes | "$SDKMANAGER" --licenses >/dev/null || true
+            "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          else
+            echo "sdkmanager not found under $SDK_PATH"
+            find "$SDK_PATH" -maxdepth 4 -type d | head -80
+            exit 1
+          fi
           cat > "$HOME/.config/godot/editor_settings-4.4.tres" <<EOF
           [gd_resource type="EditorSettings" format=3]
 
