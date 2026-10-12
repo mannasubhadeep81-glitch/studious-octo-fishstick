@@ -92,6 +92,15 @@ jobs:
           sed -i "s|^custom_template/release=.*|custom_template/release=\"$TEMPLATE_DIR/android_release.apk\"|" export_presets.cfg
           sed -i 's|^gradle_build/use_gradle_build=.*|gradle_build/use_gradle_build=false|' export_presets.cfg
           godot --headless --verbose --path . --editor --quit
+          # Run the actual main scene briefly and fail the build if Godot logs script/runtime errors.
+          set +e
+          godot --headless --verbose --path . --quit-after 5 2>&1 | tee build/smoke-test.log
+          SMOKE_STATUS=${PIPESTATUS[0]}
+          set -e
+          if [ "$SMOKE_STATUS" -ne 0 ] || grep -E "SCRIPT ERROR|Parse Error|ERROR:" build/smoke-test.log; then
+            echo "Godot runtime smoke test failed; see log above."
+            exit 1
+          fi
           godot --headless --verbose --path . --export-debug Android "$PWD/build/FighterArena.apk"
           test -s build/FighterArena.apk
           ls -lh build/FighterArena.apk
