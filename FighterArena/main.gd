@@ -37,6 +37,10 @@ var joystick_center := Vector2.ZERO
 
 func _ready() -> void:
     randomize()
+    # Show a visible HUD immediately so startup failures do not look like a silent black screen.
+    _build_hud()
+    _load_controls()
+    _set_status("LOADING ARENA...")
     _build_world()
     player = _make_fighter("PLAYER", Color("#0b7cff"), Color("#f2f2f2"), Vector3(-2.1, 0, 0))
     enemy = _make_fighter("RIVAL", Color("#c51f32"), Color("#20242c"), Vector3(2.1, 0, 0))
@@ -44,8 +48,6 @@ func _ready() -> void:
     enemy_arm = enemy.get_node("RightArm")
     player_leg = player.get_node("RightLeg")
     enemy_leg = enemy.get_node("RightLeg")
-    _build_hud()
-    _load_controls()
     _face_fighters()
     _set_status("ROUND 1  •  FIGHT!")
 
@@ -133,8 +135,8 @@ func _build_world() -> void:
     camera.position = Vector3(0, 5.9, 12.4)
     camera.rotation_degrees = Vector3(-25, 0, 0)
     camera.fov = 50
-    camera.current = true
     add_child(camera)
+    camera.make_current()
 
 func _mat(color: Color, metallic: float = 0.0, roughness: float = 0.55) -> StandardMaterial3D:
     var m := StandardMaterial3D.new()
