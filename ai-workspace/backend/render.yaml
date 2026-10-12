@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: ai-developer-workspace-backend
+    runtime: node
+    rootDir: ai-workspace/backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-5.6
+      - key: WORKSPACE_ROOT
+        value: ./workspace
+      - key: BUILD_COMMAND
+        value: npm test
