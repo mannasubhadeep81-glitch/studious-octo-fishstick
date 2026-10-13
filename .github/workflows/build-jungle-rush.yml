@@ -15,22 +15,18 @@ jobs:
   build-android:
     runs-on: ubuntu-latest
     container:
-      image: barichello/godot-ci:4.3.0
+      image: barichello/godot-ci:4.7.2
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Check Godot version
         run: godot --version
-
       - name: Import project resources
         run: godot --headless --path jungle-rush-3d --editor --quit
-
       - name: Export Android debug APK
         run: |
           mkdir -p jungle-rush-3d/build
           godot --headless --path jungle-rush-3d --export-debug "Android" jungle-rush-3d/build/JungleRush3D.apk
-
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
