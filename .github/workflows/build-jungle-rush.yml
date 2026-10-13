@@ -1,0 +1,39 @@
+name: Build Jungle Rush 3D APK
+
+on:
+  push:
+    branches: [ jungle-rush-3d ]
+    paths:
+      - 'jungle-rush-3d/**'
+      - '.github/workflows/build-jungle-rush.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Godot version
+        run: godot --version
+
+      - name: Import project resources
+        run: godot --headless --path jungle-rush-3d --editor --quit
+
+      - name: Export Android debug APK
+        run: |
+          mkdir -p jungle-rush-3d/build
+          godot --headless --path jungle-rush-3d --export-debug "Android" jungle-rush-3d/build/JungleRush3D.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: JungleRush3D-debug-apk
+          path: jungle-rush-3d/build/JungleRush3D.apk
+          if-no-files-found: error
