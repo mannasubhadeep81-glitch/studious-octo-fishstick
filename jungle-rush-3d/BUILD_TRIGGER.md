@@ -1,1 +1,1 @@
-Build workflow trigger file. Android APK build status is tracked in GitHub Actions.
+Build workflow trigger file. Godot CI image corrected to barichello/godot-ci:4.7.2. APK build status is tracked in GitHub Actions.
