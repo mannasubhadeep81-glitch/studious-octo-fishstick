@@ -14,23 +14,42 @@ permissions:
 jobs:
   build-android:
     runs-on: ubuntu-latest
-    container:
-      image: barichello/godot-ci:4.7.2
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Check Godot version
-        run: godot --version
-      - name: Install matching Godot export templates
+      - name: Install Java and Android SDK tools
+        uses: android-actions/setup-android@v3
+      - name: Install Godot 4.7.2 and matching export templates
+        shell: bash
         run: |
-          set -eux
-          mkdir -p /tmp/godot-templates
-          curl --fail --location --retry 3 --output /tmp/Godot_v4.7.2-stable_export_templates.tpz https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz
-          godot --headless --editor --quit --install-export-templates /tmp/Godot_v4.7.2-stable_export_templates.tpz
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y fontconfig libfontconfig1 unzip
+          mkdir -p "$HOME/godot" "$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          curl --fail --location --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -o /tmp/godot.zip -d "$HOME/godot"
+          sudo install -m 0755 "$HOME/godot/Godot_v4.7.2-stable_linux.x86_64" /usr/local/bin/godot
+          curl --fail --location --retry 3 -o /tmp/godot-templates.tpz https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz
+          unzip -o /tmp/godot-templates.tpz -d /tmp/godot-templates
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          if [ -d /tmp/godot-templates/templates ]; then
+            cp -a /tmp/godot-templates/templates/. "$HOME/.local/share/godot/export_templates/4.7.2.stable/"
+          else
+            cp -a /tmp/godot-templates/. "$HOME/.local/share/godot/export_templates/4.7.2.stable/"
+          fi
+          godot --version
+      - name: Install Android build tools
+        shell: bash
+        run: |
+          set -euxo pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "cmdline-tools;latest"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
       - name: Import project resources
         run: godot --headless --path jungle-rush-3d --editor --quit
       - name: Export Android debug APK
         run: |
+          set -euxo pipefail
           mkdir -p jungle-rush-3d/build
           godot --headless --path jungle-rush-3d --export-debug "Android" jungle-rush-3d/build/JungleRush3D.apk
           test -s jungle-rush-3d/build/JungleRush3D.apk
