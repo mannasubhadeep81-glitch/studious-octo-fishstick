@@ -68,7 +68,7 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p jungle-rush-3d/build
-          godot --headless --path jungle-rush-3d --export-debug "Android" jungle-rush-3d/build/JungleRush3D.apk
+          godot --headless --path jungle-rush-3d --export-debug "Android" build/JungleRush3D.apk
           test -s jungle-rush-3d/build/JungleRush3D.apk
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
