@@ -85,44 +85,63 @@ func _sphere(parent: Node3D, radius: float, pos: Vector3, mat: Material) -> Mesh
 	return node
 
 func _build_player() -> void:
-	# Procedural stylized 3D male runner; separate body parts allow a lightweight run animation.
+	# 3D stylized interpretation of the user's male reference: dark patterned shirt, tan cargo trousers, dark wavy hair and light sneakers.
 	player = Node3D.new()
 	player.name = "BoyRunner3D"
 	add_child(player)
-	var shirt := _mat(Color(0.12, 0.32, 0.78))
-	var pants := _mat(Color(0.10, 0.12, 0.18))
-	var skin := _mat(Color(0.72, 0.47, 0.31))
-	var hair := _mat(Color(0.08, 0.055, 0.035))
-	_box(player, Vector3(0.58, 0.70, 0.30), Vector3(0, 1.18, 0), shirt)
-	_sphere(player, 0.235, Vector3(0, 1.77, 0), skin)
-	_sphere(player, 0.24, Vector3(0, 1.91, -0.015), hair)
-	_box(player, Vector3(0.25, 0.48, 0.27), Vector3(-0.17, 0.57, 0), pants)
-	_box(player, Vector3(0.25, 0.48, 0.27), Vector3(0.17, 0.57, 0), pants)
-	_box(player, Vector3(0.16, 0.56, 0.17), Vector3(-0.37, 1.16, 0), shirt)
-	_box(player, Vector3(0.16, 0.56, 0.17), Vector3(0.37, 1.16, 0), shirt)
-	_sphere(player, 0.09, Vector3(-0.37, 0.84, 0), skin)
-	_sphere(player, 0.09, Vector3(0.37, 0.84, 0), skin)
+	var shirt := _mat(Color(0.12, 0.12, 0.14))
+	var pants := _mat(Color(0.64, 0.53, 0.36))
+	var skin := _mat(Color(0.55, 0.34, 0.23))
+	var hair := _mat(Color(0.035, 0.025, 0.02))
+	var shoe := _mat(Color(0.83, 0.82, 0.76))
+	var pattern := _mat(Color(0.46, 0.43, 0.37))
+	_box(player, Vector3(0.58, 0.68, 0.31), Vector3(0, 1.20, 0), shirt)
+	# Small light pattern accents on the shirt to echo the reference fabric.
+	for y in [1.40, 1.22, 1.04]:
+		for x in [-0.19, 0.0, 0.19]:
+			_sphere(player, 0.035, Vector3(x, y, 0.166), pattern)
+	_sphere(player, 0.235, Vector3(0, 1.79, 0), skin)
+	_sphere(player, 0.245, Vector3(0, 1.91, -0.015), hair)
+	_sphere(player, 0.10, Vector3(-0.15, 1.98, 0.06), hair)
+	_sphere(player, 0.10, Vector3(0.13, 1.98, 0.06), hair)
+	for side in [-1, 1]:
+		_box(player, Vector3(0.25, 0.49, 0.28), Vector3(0.17 * side, 0.57, 0), pants)
+		_box(player, Vector3(0.27, 0.13, 0.29), Vector3(0.17 * side, 0.47, 0), pants)
+		_box(player, Vector3(0.16, 0.54, 0.17), Vector3(0.37 * side, 1.17, 0), shirt)
+		_sphere(player, 0.09, Vector3(0.37 * side, 0.86, 0), skin)
+		_box(player, Vector3(0.24, 0.12, 0.36), Vector3(0.17 * side, 0.10, -0.04), shoe)
 	player.position = Vector3(0, 0, 0)
 
 func _build_follower() -> void:
-	# Procedural stylized 3D girl runner following the lead character.
+	# 3D stylized interpretation of the female black/red/gold warrior reference.
 	follower = Node3D.new()
 	follower.name = "GirlFollower3D"
 	add_child(follower)
-	var outfit := _mat(Color(0.10, 0.66, 0.84))
-	var shorts := _mat(Color(0.12, 0.18, 0.36))
-	var skin := _mat(Color(0.78, 0.54, 0.39))
-	var hair := _mat(Color(0.10, 0.055, 0.035))
-	_box(follower, Vector3(0.52, 0.64, 0.28), Vector3(0, 1.18, 0), outfit)
-	_sphere(follower, 0.22, Vector3(0, 1.73, 0), skin)
-	_sphere(follower, 0.245, Vector3(0, 1.87, -0.035), hair)
-	_sphere(follower, 0.12, Vector3(0, 1.62, 0.13), hair)
-	_box(follower, Vector3(0.22, 0.43, 0.24), Vector3(-0.15, 0.60, 0), shorts)
-	_box(follower, Vector3(0.22, 0.43, 0.24), Vector3(0.15, 0.60, 0), shorts)
-	_box(follower, Vector3(0.14, 0.50, 0.15), Vector3(-0.34, 1.18, 0), outfit)
-	_box(follower, Vector3(0.14, 0.50, 0.15), Vector3(0.34, 1.18, 0), outfit)
-	_sphere(follower, 0.08, Vector3(-0.34, 0.89, 0), skin)
-	_sphere(follower, 0.08, Vector3(0.34, 0.89, 0), skin)
+	var robe := _mat(Color(0.075, 0.045, 0.055))
+	var red := _mat(Color(0.62, 0.025, 0.07))
+	var gold := _mat(Color(0.88, 0.60, 0.16), 0.35)
+	var skin := _mat(Color(0.79, 0.62, 0.52))
+	var hair := _mat(Color(0.035, 0.022, 0.026))
+	var boot := _mat(Color(0.12, 0.08, 0.08))
+	_box(follower, Vector3(0.53, 0.66, 0.29), Vector3(0, 1.18, 0), robe)
+	_box(follower, Vector3(0.16, 0.58, 0.035), Vector3(0, 1.18, 0.16), red)
+	_box(follower, Vector3(0.57, 0.08, 0.33), Vector3(0, 0.89, 0), gold)
+	_sphere(follower, 0.22, Vector3(0, 1.75, 0), skin)
+	_sphere(follower, 0.25, Vector3(0, 1.90, -0.02), hair)
+	_sphere(follower, 0.13, Vector3(0, 1.67, 0.12), hair)
+	# Long hair locks and red/gold hair ornaments.
+	_box(follower, Vector3(0.12, 0.53, 0.13), Vector3(-0.23, 1.55, -0.02), hair)
+	_box(follower, Vector3(0.12, 0.53, 0.13), Vector3(0.23, 1.55, -0.02), hair)
+	_sphere(follower, 0.055, Vector3(0.13, 2.08, 0.02), gold)
+	_box(follower, Vector3(0.045, 0.30, 0.04), Vector3(0.19, 1.91, 0.04), red)
+	for side in [-1, 1]:
+		_box(follower, Vector3(0.22, 0.43, 0.24), Vector3(0.15 * side, 0.58, 0), robe)
+		_box(follower, Vector3(0.14, 0.52, 0.15), Vector3(0.34 * side, 1.17, 0), robe)
+		_box(follower, Vector3(0.16, 0.11, 0.18), Vector3(0.34 * side, 1.02, 0.02), red)
+		_sphere(follower, 0.08, Vector3(0.34 * side, 0.89, 0), skin)
+		_box(follower, Vector3(0.24, 0.12, 0.34), Vector3(0.15 * side, 0.10, -0.04), boot)
+	# Gold trim at shoulders and belt gives the silhouette a warrior-costume read.
+	_box(follower, Vector3(0.60, 0.045, 0.31), Vector3(0, 1.48, 0), gold)
 	follower.position = Vector3(0.8, 0, 4.2)
 func _build_camera() -> void:
 	camera = Camera3D.new()
