@@ -288,7 +288,7 @@ func _process(delta: float) -> void:
 
 func _update_world() -> void:
 	while ground_segments.size() > 0 and ground_segments[0].position.z > player.position.z + 18.0:
-		var old := ground_segments.pop_front()
+		var old: Node3D = ground_segments.pop_front()
 		old.queue_free()
 	var farthest := -999999.0
 	for segment in ground_segments:
