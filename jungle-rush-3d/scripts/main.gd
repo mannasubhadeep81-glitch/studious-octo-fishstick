@@ -4,7 +4,7 @@ const LANES := [-2.2, 0.0, 2.2]
 const START_SPEED := 12.0
 const MAX_SPEED := 27.0
 const SEGMENT_LENGTH := 8.0
-const WORLD_AHEAD := 180.0
+const WORLD_AHEAD := 112.0
 
 var player: Node3D
 var follower: Node3D
@@ -31,6 +31,9 @@ var spawn_z := -18.0
 var materials: Dictionary = {}
 
 func _ready() -> void:
+	# Mobile frame pacing: cap at 60 FPS and keep physics cadence consistent.
+	Engine.max_fps = 60
+	Engine.physics_ticks_per_second = 60
 	rng.randomize()
 	_make_materials()
 	_build_player()
@@ -38,9 +41,9 @@ func _ready() -> void:
 	_build_camera()
 	_build_lighting()
 	_build_hud()
-	for i in range(24):
+	for i in range(16):
 		_add_ground_segment(-float(i) * SEGMENT_LENGTH)
-	for i in range(24):
+	for i in range(14):
 		_spawn_row(-18.0 - float(i) * 7.0)
 	_update_hud()
 
@@ -61,6 +64,7 @@ func _mat(color: Color, metallic: float = 0.0) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = color
 	m.metallic = metallic
+	m.roughness = 0.92
 	return m
 
 func _box(parent: Node3D, size: Vector3, pos: Vector3, mat: Material) -> MeshInstance3D:
@@ -153,20 +157,16 @@ func _build_camera() -> void:
 func _build_lighting() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-48, -25, 0)
-	sun.light_energy = 1.15
+	sun.light_energy = 0.9
+	sun.shadow_enabled = false
 	add_child(sun)
 	var env := WorldEnvironment.new()
 	var environment := Environment.new()
-	environment.background_mode = Environment.BG_SKY
-	var sky := Sky.new()
-	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = Color(0.12, 0.35, 0.52)
-	sky_mat.sky_horizon_color = Color(0.62, 0.77, 0.69)
-	sky.sky_material = sky_mat
-	environment.sky = sky
+	environment.background_mode = Environment.BG_COLOR
+	environment.background_color = Color(0.12, 0.25, 0.18)
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color(0.55, 0.65, 0.53)
-	environment.ambient_light_energy = 0.7
+	environment.ambient_light_energy = 0.55
 	env.environment = environment
 	add_child(env)
 
@@ -179,7 +179,7 @@ func _add_ground_segment(z: float) -> void:
 	for lane_x in [-1.1, 1.1]:
 		_box(segment, Vector3(0.06, 0.025, SEGMENT_LENGTH), Vector3(lane_x, 0.06, -SEGMENT_LENGTH / 2.0), materials["white"])
 	for side in [-1, 1]:
-		if rng.randf() < 0.95:
+		if rng.randf() < 0.65:
 			var tree_x := float(side) * rng.randf_range(5.0, 8.0)
 			_box(segment, Vector3(0.45, 2.8, 0.45), Vector3(tree_x, 1.25, -rng.randf_range(1.0, 7.0)), materials["wood"])
 			_sphere(segment, rng.randf_range(1.1, 1.7), Vector3(tree_x, 3.3, -rng.randf_range(1.0, 7.0)), materials["leaf"] if side == -1 else materials["leaf2"])
@@ -212,6 +212,8 @@ func _spawn_coin(x: float, z: float) -> void:
 	coin.position = Vector3(x, 1.1, z)
 	add_child(coin)
 	var ring := TorusMesh.new()
+	ring.rings = 6
+	ring.ring_segments = 8
 	ring.inner_radius = 0.22
 	ring.outer_radius = 0.34
 	var visual := MeshInstance3D.new()
@@ -334,7 +336,7 @@ func _process(delta: float) -> void:
 		player.scale.y = 0.55
 	else:
 		player.scale.y = 1.0
-	camera.position.x = lerpf(camera.position.x, player.position.x * 0.35, delta * 2.5)
+	camera.position.x = lerpf(camera.position.x, player.position.x * 0.35, minf(1.0, delta * 2.5))
 	camera.position.z = player.position.z + 9.5
 	camera.position.y = 5.5 + player.position.y * 0.35
 	camera.look_at(player.position + Vector3(0, 1.1, -7.0), Vector3.UP)
