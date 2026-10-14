@@ -17,8 +17,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install Java and Android SDK tools
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Android SDK command-line tools
         uses: android-actions/setup-android@v3
+        with:
+          tools: false
+          platform-tools: false
       - name: Install Godot 4.7.2 and matching export templates
         shell: bash
         run: |
