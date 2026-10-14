@@ -7,6 +7,8 @@ const SEGMENT_LENGTH := 8.0
 const WORLD_AHEAD := 180.0
 
 var player: Node3D
+var follower: Node3D
+var runner_time := 0.0
 var camera: Camera3D
 var hud: CanvasLayer
 var score_label: Label
@@ -32,6 +34,7 @@ func _ready() -> void:
 	rng.randomize()
 	_make_materials()
 	_build_player()
+	_build_follower()
 	_build_camera()
 	_build_lighting()
 	_build_hud()
@@ -92,6 +95,23 @@ func _build_player() -> void:
 	_box(player, Vector3(0.16, 0.65, 0.18), Vector3(-0.48, 1.08, 0), materials["skin"])
 	_box(player, Vector3(0.16, 0.65, 0.18), Vector3(0.48, 1.08, 0), materials["skin"])
 	player.position = Vector3(0, 0, 0)
+
+func _build_follower() -> void:
+	# Temporary procedural female runner placeholder until the user's actual character sheet is added.
+	follower = Node3D.new()
+	follower.name = "FemaleFollower"
+	add_child(follower)
+	var outfit := _mat(Color(0.18, 0.62, 0.88))
+	var skin := materials["skin"]
+	var hair := _mat(Color(0.12, 0.075, 0.045))
+	_box(follower, Vector3(0.62, 0.88, 0.38), Vector3(0, 1.02, 0), outfit)
+	_sphere(follower, 0.29, Vector3(0, 1.78, 0), skin)
+	_sphere(follower, 0.31, Vector3(0, 1.94, -0.035), hair)
+	_box(follower, Vector3(0.12, 0.48, 0.14), Vector3(-0.20, 0.42, 0), outfit)
+	_box(follower, Vector3(0.12, 0.48, 0.14), Vector3(0.20, 0.42, 0), outfit)
+	_box(follower, Vector3(0.14, 0.58, 0.16), Vector3(-0.42, 1.08, 0), skin)
+	_box(follower, Vector3(0.14, 0.58, 0.16), Vector3(0.42, 1.08, 0), skin)
+	follower.position = Vector3(0.8, 0, 4.2)
 
 func _build_camera() -> void:
 	camera = Camera3D.new()
@@ -265,9 +285,15 @@ func _process(delta: float) -> void:
 	if game_over:
 		return
 	distance += speed * delta
+	runner_time += delta * speed
 	speed = minf(MAX_SPEED, START_SPEED + distance * 0.006)
 	player.position.x = lerpf(player.position.x, LANES[lane_index], minf(1.0, delta * 12.0))
 	player.position.z -= speed * delta
+	# Keep the follower behind the player and animate a simple running bounce.
+	follower.position.x = lerpf(follower.position.x, player.position.x + 0.8, minf(1.0, delta * 4.0))
+	follower.position.z = player.position.z + 4.2
+	follower.position.y = absf(sin(runner_time * 0.85)) * 0.12
+	follower.rotation.z = sin(runner_time * 0.65) * 0.035
 	if jump_timer > 0.0:
 		jump_timer -= delta
 		player.position.y = sin((0.62 - jump_timer) / 0.62 * PI) * 1.65
