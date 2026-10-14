@@ -85,34 +85,45 @@ func _sphere(parent: Node3D, radius: float, pos: Vector3, mat: Material) -> Mesh
 	return node
 
 func _build_player() -> void:
+	# Procedural stylized 3D male runner; separate body parts allow a lightweight run animation.
 	player = Node3D.new()
-	player.name = "Runner"
+	player.name = "BoyRunner3D"
 	add_child(player)
-	_box(player, Vector3(0.72, 0.95, 0.42), Vector3(0, 1.05, 0), materials["player"])
-	_sphere(player, 0.31, Vector3(0, 1.82, 0), materials["skin"])
-	_box(player, Vector3(0.16, 0.64, 0.19), Vector3(-0.24, 0.43, 0), materials["player"])
-	_box(player, Vector3(0.16, 0.64, 0.19), Vector3(0.24, 0.43, 0), materials["player"])
-	_box(player, Vector3(0.16, 0.65, 0.18), Vector3(-0.48, 1.08, 0), materials["skin"])
-	_box(player, Vector3(0.16, 0.65, 0.18), Vector3(0.48, 1.08, 0), materials["skin"])
+	var shirt := _mat(Color(0.12, 0.32, 0.78))
+	var pants := _mat(Color(0.10, 0.12, 0.18))
+	var skin := _mat(Color(0.72, 0.47, 0.31))
+	var hair := _mat(Color(0.08, 0.055, 0.035))
+	_box(player, Vector3(0.58, 0.70, 0.30), Vector3(0, 1.18, 0), shirt)
+	_sphere(player, 0.235, Vector3(0, 1.77, 0), skin)
+	_sphere(player, 0.24, Vector3(0, 1.91, -0.015), hair)
+	_box(player, Vector3(0.25, 0.48, 0.27), Vector3(-0.17, 0.57, 0), pants)
+	_box(player, Vector3(0.25, 0.48, 0.27), Vector3(0.17, 0.57, 0), pants)
+	_box(player, Vector3(0.16, 0.56, 0.17), Vector3(-0.37, 1.16, 0), shirt)
+	_box(player, Vector3(0.16, 0.56, 0.17), Vector3(0.37, 1.16, 0), shirt)
+	_sphere(player, 0.09, Vector3(-0.37, 0.84, 0), skin)
+	_sphere(player, 0.09, Vector3(0.37, 0.84, 0), skin)
 	player.position = Vector3(0, 0, 0)
 
 func _build_follower() -> void:
-	# Temporary procedural female runner placeholder until the user's actual character sheet is added.
+	# Procedural stylized 3D girl runner following the lead character.
 	follower = Node3D.new()
-	follower.name = "FemaleFollower"
+	follower.name = "GirlFollower3D"
 	add_child(follower)
-	var outfit := _mat(Color(0.18, 0.62, 0.88))
-	var skin := materials["skin"]
-	var hair := _mat(Color(0.12, 0.075, 0.045))
-	_box(follower, Vector3(0.62, 0.88, 0.38), Vector3(0, 1.02, 0), outfit)
-	_sphere(follower, 0.29, Vector3(0, 1.78, 0), skin)
-	_sphere(follower, 0.31, Vector3(0, 1.94, -0.035), hair)
-	_box(follower, Vector3(0.12, 0.48, 0.14), Vector3(-0.20, 0.42, 0), outfit)
-	_box(follower, Vector3(0.12, 0.48, 0.14), Vector3(0.20, 0.42, 0), outfit)
-	_box(follower, Vector3(0.14, 0.58, 0.16), Vector3(-0.42, 1.08, 0), skin)
-	_box(follower, Vector3(0.14, 0.58, 0.16), Vector3(0.42, 1.08, 0), skin)
+	var outfit := _mat(Color(0.10, 0.66, 0.84))
+	var shorts := _mat(Color(0.12, 0.18, 0.36))
+	var skin := _mat(Color(0.78, 0.54, 0.39))
+	var hair := _mat(Color(0.10, 0.055, 0.035))
+	_box(follower, Vector3(0.52, 0.64, 0.28), Vector3(0, 1.18, 0), outfit)
+	_sphere(follower, 0.22, Vector3(0, 1.73, 0), skin)
+	_sphere(follower, 0.245, Vector3(0, 1.87, -0.035), hair)
+	_sphere(follower, 0.12, Vector3(0, 1.62, 0.13), hair)
+	_box(follower, Vector3(0.22, 0.43, 0.24), Vector3(-0.15, 0.60, 0), shorts)
+	_box(follower, Vector3(0.22, 0.43, 0.24), Vector3(0.15, 0.60, 0), shorts)
+	_box(follower, Vector3(0.14, 0.50, 0.15), Vector3(-0.34, 1.18, 0), outfit)
+	_box(follower, Vector3(0.14, 0.50, 0.15), Vector3(0.34, 1.18, 0), outfit)
+	_sphere(follower, 0.08, Vector3(-0.34, 0.89, 0), skin)
+	_sphere(follower, 0.08, Vector3(0.34, 0.89, 0), skin)
 	follower.position = Vector3(0.8, 0, 4.2)
-
 func _build_camera() -> void:
 	camera = Camera3D.new()
 	camera.position = Vector3(0, 5.5, 9.5)
