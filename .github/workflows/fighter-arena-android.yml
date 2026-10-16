@@ -6,6 +6,11 @@ on:
     paths:
       - "FighterArena/**"
       - ".github/workflows/fighter-arena-android.yml"
+  pull_request:
+    branches: ["feature/fighter-arena-prototype"]
+    paths:
+      - "FighterArena/**"
+      - ".github/workflows/fighter-arena-android.yml"
   workflow_dispatch:
 
 permissions:
