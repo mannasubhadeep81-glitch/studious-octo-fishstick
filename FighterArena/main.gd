@@ -65,36 +65,36 @@ func _build_world() -> void:
     var env := WorldEnvironment.new()
     var environment := Environment.new()
     environment.background_mode = Environment.BG_COLOR
-    environment.background_color = Color("#030611")
+    environment.background_color = Color("#7fc9ee")
     environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-    environment.ambient_light_color = Color("#8194d9")
-    environment.ambient_light_energy = 0.72
+    environment.ambient_light_color = Color("#c3ddf0")
+    environment.ambient_light_energy = 0.95
     environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
     environment.fog_enabled = true
-    environment.fog_light_color = Color("#171b3d")
-    environment.fog_density = 0.012
+    environment.fog_light_color = Color("#a8d8ed")
+    environment.fog_density = 0.004
     env.environment = environment
     add_child(env)
 
     var key_light := DirectionalLight3D.new()
     key_light.rotation_degrees = Vector3(-52, -30, 0)
-    key_light.light_color = Color("#b6c7ff")
-    key_light.light_energy = 1.7
+    key_light.light_color = Color("#fff0cf")
+    key_light.light_energy = 1.25
     key_light.shadow_enabled = true
     key_light.directional_shadow_max_distance = 35.0
     add_child(key_light)
 
     var rim_light := OmniLight3D.new()
     rim_light.position = Vector3(0, 4.0, -3.5)
-    rim_light.light_color = Color("#a020ff")
-    rim_light.light_energy = 5.0
+    rim_light.light_color = Color("#72c9ff")
+    rim_light.light_energy = 2.0
     rim_light.omni_range = 14.0
     add_child(rim_light)
 
     var fill := OmniLight3D.new()
     fill.position = Vector3(0, 4.5, 2.5)
-    fill.light_color = Color("#16d9ff")
-    fill.light_energy = 4.0
+    fill.light_color = Color("#ffe1a1")
+    fill.light_energy = 1.4
     fill.omni_range = 16.0
     add_child(fill)
 
@@ -103,7 +103,7 @@ func _build_world() -> void:
     floor_mesh.size = Vector2(24, 22)
     floor.mesh = floor_mesh
     floor.position.y = -0.08
-    floor.material_override = _mat(Color("#080d1c"), 0.62, 0.24)
+    floor.material_override = _mat(Color("#b58b56"), 0.0, 0.92)
     add_child(floor)
 
     var platform := MeshInstance3D.new()
@@ -114,7 +114,7 @@ func _build_world() -> void:
     platform_mesh.radial_segments = 8
     platform.mesh = platform_mesh
     platform.position.y = -0.02
-    platform.material_override = _mat(Color("#111a31"), 0.78, 0.22)
+    platform.material_override = _mat(Color("#6f523b"), 0.05, 0.86)
     add_child(platform)
 
     var ring := MeshInstance3D.new()
@@ -122,7 +122,7 @@ func _build_world() -> void:
     ring_mesh.size = Vector3(11.2, 0.13, 7.6)
     ring.mesh = ring_mesh
     ring.position.y = 0.12
-    ring.material_override = _glow_mat(Color("#6c3dff"))
+    ring.material_override = _glow_mat(Color("#35d9ef"))
     add_child(ring)
 
     for x in [-5.0, -3.8, -2.6, -1.4, 0.0, 1.4, 2.6, 3.8, 5.0]:
@@ -152,25 +152,60 @@ func _build_world() -> void:
         rail.material_override = _mat(Color("#202a49"), 0.82, 0.18)
         add_child(rail)
 
-    # Distant stepped skyline gives the arena depth without heavy external assets.
-    for i in range(13):
-        var tower := MeshInstance3D.new()
-        var tower_mesh := BoxMesh.new()
-        var tower_w := 0.65 + float((i * 7) % 5) * 0.18
-        var tower_h := 2.8 + float((i * 11) % 7) * 0.55
-        tower_mesh.size = Vector3(tower_w, tower_h, 0.65)
-        tower.mesh = tower_mesh
-        tower.position = Vector3(-10.5 + float(i) * 1.75, tower_h * 0.5 - 0.1, -7.2 - float(i % 3) * 0.35)
-        tower.material_override = _mat(Color("#10162b"), 0.52, 0.3)
-        add_child(tower)
-        for window_row in range(3, int(tower_h * 1.4), 2):
-            var window := MeshInstance3D.new()
-            var window_mesh := BoxMesh.new()
-            window_mesh.size = Vector3(0.08, 0.12, 0.025)
-            window.mesh = window_mesh
-            window.position = tower.position + Vector3(0, -tower_h * 0.5 + float(window_row) * 0.35, 0.34)
-            window.material_override = _glow_mat(Color("#1b78b9") if i % 2 == 0 else Color("#7335bd"))
-            add_child(window)
+    # Warm anime canyon backdrop with layered cliffs and a bright waterfall.
+    for side in [-1.0, 1.0]:
+        for i in range(5):
+            var cliff := MeshInstance3D.new()
+            var cliff_mesh := BoxMesh.new()
+            var cliff_h := 3.0 + float((i * 3) % 4) * 0.9
+            cliff_mesh.size = Vector3(2.3 + float(i % 2) * 0.8, cliff_h, 1.8)
+            cliff.mesh = cliff_mesh
+            cliff.position = Vector3(side * (7.0 + float(i % 2) * 0.8), cliff_h * 0.5 - 0.15, -5.8 - float(i) * 1.4)
+            cliff.rotation.z = side * (0.04 + float(i % 3) * 0.025)
+            cliff.material_override = _mat(Color("#9b7955") if i % 2 == 0 else Color("#b28a60"), 0.0, 0.98)
+            add_child(cliff)
+            var ledge := MeshInstance3D.new()
+            var ledge_mesh := BoxMesh.new()
+            ledge_mesh.size = Vector3(2.7, 0.22, 2.0)
+            ledge.mesh = ledge_mesh
+            ledge.position = cliff.position + Vector3(-side * 0.12, cliff_h * 0.28, 0.05)
+            ledge.material_override = _mat(Color("#d1ad78"), 0.0, 1.0)
+            add_child(ledge)
+
+    var waterfall := MeshInstance3D.new()
+    var waterfall_mesh := BoxMesh.new()
+    waterfall_mesh.size = Vector3(2.8, 4.2, 0.12)
+    waterfall.mesh = waterfall_mesh
+    waterfall.position = Vector3(0.0, 2.0, -7.5)
+    var water_mat := StandardMaterial3D.new()
+    water_mat.albedo_color = Color(0.34, 0.78, 0.95, 0.78)
+    water_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    water_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    water_mat.emission_enabled = true
+    water_mat.emission = Color("#65dfff")
+    water_mat.emission_energy_multiplier = 0.45
+    waterfall.material_override = water_mat
+    add_child(waterfall)
+
+    for i in range(9):
+        var stream := MeshInstance3D.new()
+        var stream_mesh := BoxMesh.new()
+        stream_mesh.size = Vector3(0.055 + float(i % 3) * 0.025, 3.7, 0.035)
+        stream.mesh = stream_mesh
+        stream.position = Vector3(-1.25 + float(i) * 0.31, 1.9, -7.38)
+        stream.material_override = _glow_mat(Color("#a6edff"))
+        add_child(stream)
+
+    for i in range(11):
+        var rock := MeshInstance3D.new()
+        var rock_mesh := SphereMesh.new()
+        rock_mesh.radius = 0.45 + float(i % 3) * 0.16
+        rock_mesh.height = rock_mesh.radius * 1.4
+        rock.mesh = rock_mesh
+        rock.position = Vector3(-7.2 + float(i) * 1.42, -0.02 + float(i % 2) * 0.12, -4.5 - float(i % 3) * 1.1)
+        rock.scale = Vector3(1.4, 0.7, 0.8)
+        rock.material_override = _mat(Color("#80664d") if i % 2 == 0 else Color("#a58a69"), 0.0, 0.95)
+        add_child(rock)
 
     for x in [-6.2, 6.2]:
         for z in [-3.2, 3.2]:
