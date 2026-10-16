@@ -61,42 +61,83 @@ func _build_world() -> void:
     var env := WorldEnvironment.new()
     var environment := Environment.new()
     environment.background_mode = Environment.BG_COLOR
-    environment.background_color = Color("#070b18")
+    environment.background_color = Color("#030611")
     environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-    environment.ambient_light_color = Color("#7d91b8")
-    environment.ambient_light_energy = 1.0
+    environment.ambient_light_color = Color("#8194d9")
+    environment.ambient_light_energy = 0.72
     environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+    environment.fog_enabled = true
+    environment.fog_light_color = Color("#171b3d")
+    environment.fog_density = 0.012
     env.environment = environment
     add_child(env)
 
     var key_light := DirectionalLight3D.new()
     key_light.rotation_degrees = Vector3(-52, -30, 0)
-    key_light.light_energy = 2.0
+    key_light.light_color = Color("#b6c7ff")
+    key_light.light_energy = 1.7
     key_light.shadow_enabled = true
     key_light.directional_shadow_max_distance = 35.0
     add_child(key_light)
 
+    var rim_light := OmniLight3D.new()
+    rim_light.position = Vector3(0, 4.0, -3.5)
+    rim_light.light_color = Color("#a020ff")
+    rim_light.light_energy = 5.0
+    rim_light.omni_range = 14.0
+    add_child(rim_light)
+
     var fill := OmniLight3D.new()
     fill.position = Vector3(0, 4.5, 2.5)
-    fill.light_energy = 7.0
+    fill.light_color = Color("#16d9ff")
+    fill.light_energy = 4.0
     fill.omni_range = 16.0
     add_child(fill)
 
     var floor := MeshInstance3D.new()
     var floor_mesh := PlaneMesh.new()
-    floor_mesh.size = Vector2(16, 14)
+    floor_mesh.size = Vector2(24, 22)
     floor.mesh = floor_mesh
     floor.position.y = -0.08
-    floor.material_override = _mat(Color("#151b2d"), 0.35, 0.3)
+    floor.material_override = _mat(Color("#080d1c"), 0.62, 0.24)
     add_child(floor)
+
+    var platform := MeshInstance3D.new()
+    var platform_mesh := CylinderMesh.new()
+    platform_mesh.top_radius = 5.8
+    platform_mesh.bottom_radius = 6.1
+    platform_mesh.height = 0.22
+    platform_mesh.radial_segments = 8
+    platform.mesh = platform_mesh
+    platform.position.y = -0.02
+    platform.material_override = _mat(Color("#111a31"), 0.78, 0.22)
+    add_child(platform)
 
     var ring := MeshInstance3D.new()
     var ring_mesh := BoxMesh.new()
-    ring_mesh.size = Vector3(11.2, 0.16, 7.6)
+    ring_mesh.size = Vector3(11.2, 0.13, 7.6)
     ring.mesh = ring_mesh
-    ring.position.y = 0.02
-    ring.material_override = _mat(Color("#263b61"), 0.55, 0.22)
+    ring.position.y = 0.12
+    ring.material_override = _glow_mat(Color("#6c3dff"))
     add_child(ring)
+
+    for x in [-5.0, -3.8, -2.6, -1.4, 0.0, 1.4, 2.6, 3.8, 5.0]:
+        var tile := MeshInstance3D.new()
+        var tile_mesh := BoxMesh.new()
+        tile_mesh.size = Vector3(0.025, 0.018, 6.8)
+        tile.mesh = tile_mesh
+        tile.position = Vector3(x, 0.14, 0)
+        tile.material_override = _glow_mat(Color("#163e73"))
+        add_child(tile)
+
+    for z in [-3.55, 3.55]:
+        var rail := MeshInstance3D.new()
+        var rail_mesh := BoxMesh.new()
+        rail_mesh.size = Vector3(10.8, 0.10, 0.08)
+        rail.mesh = rail_mesh
+        rail.position = Vector3(0, 0.20, z)
+        rail.material_override = _glow_mat(Color("#13dfff"))
+        add_child(rail)
 
     for x in [-5.35, 5.35]:
         var rail := MeshInstance3D.new()
@@ -104,17 +145,28 @@ func _build_world() -> void:
         rail_mesh.size = Vector3(0.08, 1.15, 7.4)
         rail.mesh = rail_mesh
         rail.position = Vector3(x, 0.62, 0)
-        rail.material_override = _mat(Color("#4b6d9f"), 0.75, 0.18)
+        rail.material_override = _mat(Color("#202a49"), 0.82, 0.18)
         add_child(rail)
 
-    for z in [-3.65, 3.65]:
-        var rail := MeshInstance3D.new()
-        var rail_mesh := BoxMesh.new()
-        rail_mesh.size = Vector3(10.8, 0.12, 0.08)
-        rail.mesh = rail_mesh
-        rail.position = Vector3(0, 0.18, z)
-        rail.material_override = _mat(Color("#1aa6d9"), 0.65, 0.2)
-        add_child(rail)
+    # Distant stepped skyline gives the arena depth without heavy external assets.
+    for i in range(13):
+        var tower := MeshInstance3D.new()
+        var tower_mesh := BoxMesh.new()
+        var tower_w := 0.65 + float((i * 7) % 5) * 0.18
+        var tower_h := 2.8 + float((i * 11) % 7) * 0.55
+        tower_mesh.size = Vector3(tower_w, tower_h, 0.65)
+        tower.mesh = tower_mesh
+        tower.position = Vector3(-10.5 + float(i) * 1.75, tower_h * 0.5 - 0.1, -7.2 - float(i % 3) * 0.35)
+        tower.material_override = _mat(Color("#10162b"), 0.52, 0.3)
+        add_child(tower)
+        for window_row in range(3, int(tower_h * 1.4), 2):
+            var window := MeshInstance3D.new()
+            var window_mesh := BoxMesh.new()
+            window_mesh.size = Vector3(0.08, 0.12, 0.025)
+            window.mesh = window_mesh
+            window.position = tower.position + Vector3(0, -tower_h * 0.5 + float(window_row) * 0.35, 0.34)
+            window.material_override = _glow_mat(Color("#1b78b9") if i % 2 == 0 else Color("#7335bd"))
+            add_child(window)
 
     for x in [-6.2, 6.2]:
         for z in [-3.2, 3.2]:
@@ -125,24 +177,33 @@ func _build_world() -> void:
             pillar_mesh.height = 2.8
             pillar.mesh = pillar_mesh
             pillar.position = Vector3(x, 1.3, z)
-            pillar.material_override = _mat(Color("#202b42"), 0.55, 0.2)
+            pillar.material_override = _mat(Color("#202b42"), 0.7, 0.2)
             add_child(pillar)
-
-    for x in [-4.6, -2.3, 0, 2.3, 4.6]:
-        var tile := MeshInstance3D.new()
-        var tile_mesh := BoxMesh.new()
-        tile_mesh.size = Vector3(0.035, 0.025, 6.9)
-        tile.mesh = tile_mesh
-        tile.position = Vector3(x, 0.105, 0)
-        tile.material_override = _mat(Color("#33496e"), 0.3, 0.32)
-        add_child(tile)
+            var cap := MeshInstance3D.new()
+            var cap_mesh := SphereMesh.new()
+            cap_mesh.radius = 0.20
+            cap_mesh.height = 0.4
+            cap.mesh = cap_mesh
+            cap.position = Vector3(x, 2.8, z)
+            cap.material_override = _glow_mat(Color("#13dfff") if x < 0 else Color("#b72fff"))
+            add_child(cap)
 
     var camera := Camera3D.new()
     camera.position = Vector3(0, 5.9, 12.4)
     camera.rotation_degrees = Vector3(-25, 0, 0)
-    camera.fov = 50
+    camera.fov = 48
     add_child(camera)
     camera.make_current()
+
+func _glow_mat(color: Color) -> StandardMaterial3D:
+    var material := StandardMaterial3D.new()
+    material.albedo_color = color
+    material.emission_enabled = true
+    material.emission = color
+    material.emission_energy_multiplier = 1.6
+    material.metallic = 0.25
+    material.roughness = 0.22
+    return material
 
 func _mat(color: Color, metallic: float = 0.0, roughness: float = 0.55) -> StandardMaterial3D:
     var m := StandardMaterial3D.new()
