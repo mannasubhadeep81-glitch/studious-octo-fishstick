@@ -2,7 +2,12 @@ name: Build Fighter Arena APK
 
 on:
   push:
-    branches: [main, "feature/fighter-arena-prototype"]
+    branches: [main, "feature/fighter-arena-prototype", "feature/fighter-arena-campaign"]
+    paths:
+      - "FighterArena/**"
+      - ".github/workflows/fighter-arena-android.yml"
+  pull_request:
+    branches: ["feature/fighter-arena-prototype"]
     paths:
       - "FighterArena/**"
       - ".github/workflows/fighter-arena-android.yml"

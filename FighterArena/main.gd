@@ -2,6 +2,7 @@ extends Node3D
 
 const ARENA_LIMIT := 5.2
 const SAVE_PATH := "user://fighter_controls.cfg"
+const CAMPAIGN_PATH := "user://fighter_campaign.cfg"
 
 var player: Node3D
 var enemy: Node3D
@@ -9,6 +10,7 @@ var player_arm: Node3D
 var enemy_arm: Node3D
 var player_leg: Node3D
 var enemy_leg: Node3D
+var campaign_round := 1
 var player_hp := 100.0
 var enemy_hp := 100.0
 var enemy_clock := 1.0
@@ -37,6 +39,7 @@ var joystick_center := Vector2.ZERO
 
 func _ready() -> void:
     randomize()
+    _load_campaign()
     # Show a visible HUD immediately so startup failures do not look like a silent black screen.
     _build_hud()
     _load_controls()
@@ -48,8 +51,11 @@ func _ready() -> void:
     enemy_arm = enemy.get_node("RightArm")
     player_leg = player.get_node("RightLeg")
     enemy_leg = enemy.get_node("RightLeg")
+    enemy_hp = minf(100.0 + float(campaign_round - 1) * 5.0, 160.0)
+    enemy_bar.max_value = enemy_hp
+    enemy_bar.value = enemy_hp
     _face_fighters()
-    _set_status("ROUND 1  •  FIGHT!")
+    _set_status("STORY ROUND " + str(campaign_round) + "  •  FIGHT!")
 
 func _build_world() -> void:
     var env := WorldEnvironment.new()
@@ -215,7 +221,7 @@ func _build_hud() -> void:
     pbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     top.add_child(pbox)
     var plabel := Label.new()
-    plabel.text = "PLAYER 01"
+    plabel.text = "PLAYER"
     plabel.add_theme_font_size_override("font_size", 21)
     pbox.add_child(plabel)
     player_bar = ProgressBar.new()
@@ -228,7 +234,7 @@ func _build_hud() -> void:
     center.custom_minimum_size = Vector2(220, 0)
     top.add_child(center)
     round_label = Label.new()
-    round_label.text = "ROUND 01"
+    round_label.text = "STORY ROUND " + str(campaign_round).pad_zeros(2)
     round_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     round_label.add_theme_font_size_override("font_size", 22)
     center.add_child(round_label)
@@ -241,7 +247,7 @@ func _build_hud() -> void:
     ebox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     top.add_child(ebox)
     var elabel := Label.new()
-    elabel.text = "RIVAL 01"
+    elabel.text = "RIVAL " + str(campaign_round).pad_zeros(2)
     elabel.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
     elabel.add_theme_font_size_override("font_size", 21)
     ebox.add_child(elabel)
@@ -459,7 +465,8 @@ func _process(delta: float) -> void:
 
     enemy_clock -= delta
     if enemy_clock <= 0:
-        enemy_clock = randf_range(0.9, 1.55)
+        var speed_bonus := minf(float(campaign_round - 1) * 0.05, 0.35)
+        enemy_clock = randf_range(maxf(0.45, 0.9 - speed_bonus), maxf(0.7, 1.55 - speed_bonus))
         if absf(enemy.position.x - player.position.x) > 2.55:
             enemy.position.x = move_toward(enemy.position.x, player.position.x + 1.25, 0.62)
             enemy.position.x = clampf(enemy.position.x, 0.6, ARENA_LIMIT)
@@ -467,7 +474,7 @@ func _process(delta: float) -> void:
             _set_status("RIVAL ADVANCING")
         else:
             _attack_animation(enemy_arm, "PUNCH")
-            var damage := randf_range(6.0, 11.0)
+            var damage := randf_range(6.0, 11.0) + minf(float(campaign_round - 1) * 1.5, 15.0)
             if blocking:
                 damage *= 0.2
                 _set_status("BLOCKED!  -" + str(int(damage)))
@@ -485,15 +492,37 @@ func _set_status(value: String) -> void:
 
 func _finish(won: bool) -> void:
     round_over = true
-    _set_status("VICTORY!" if won else "DEFEAT  •  TRY AGAIN")
     var p: Button = control_buttons["punch"] as Button
     var k: Button = control_buttons["kick"] as Button
-    p.text = "AGAIN"
-    k.text = "AGAIN"
     p.pressed.disconnect(_punch)
     k.pressed.disconnect(_kick)
-    p.pressed.connect(_restart)
-    k.pressed.connect(_restart)
+    if won:
+        _set_status("VICTORY!  •  NEXT ROUND")
+        p.text = "NEXT ROUND"
+        k.text = "NEXT ROUND"
+        p.pressed.connect(_next_round)
+        k.pressed.connect(_next_round)
+    else:
+        _set_status("DEFEAT  •  RETRY ROUND " + str(campaign_round))
+        p.text = "RETRY"
+        k.text = "RETRY"
+        p.pressed.connect(_restart)
+        k.pressed.connect(_restart)
+
+func _load_campaign() -> void:
+    var cfg := ConfigFile.new()
+    if cfg.load(CAMPAIGN_PATH) == OK:
+        campaign_round = maxi(1, int(cfg.get_value("story", "round", 1)))
+
+func _save_campaign() -> void:
+    var cfg := ConfigFile.new()
+    cfg.set_value("story", "round", campaign_round)
+    cfg.save(CAMPAIGN_PATH)
+
+func _next_round() -> void:
+    campaign_round += 1
+    _save_campaign()
+    get_tree().reload_current_scene()
 
 func _restart() -> void:
     get_tree().reload_current_scene()
