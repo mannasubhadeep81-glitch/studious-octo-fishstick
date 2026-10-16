@@ -12,7 +12,7 @@ window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="viewport"
 window/stretch/aspect="keep"
-window/handheld/orientation=1
+window/handheld/orientation=0
 
 [rendering]
 textures/vram_compression/import_etc2_astc=true
