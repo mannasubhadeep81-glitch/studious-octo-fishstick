@@ -510,11 +510,31 @@ func _player_attack(damage: float, move_name: String, limb: Node3D) -> void:
 func _attack_animation(limb: Node3D, move_name: String) -> void:
     if not is_instance_valid(limb):
         return
+
+    var torso: Node3D = limb.get_parent().get_node_or_null("Torso") as Node3D
+    if move_name == "KICK":
+        # Rotate the leg forward, rather than sideways, for a readable kick.
+        var leg_start_x := limb.rotation.x
+        var kick := create_tween()
+        kick.tween_property(limb, "rotation:x", -0.95, 0.10)
+        kick.tween_property(limb, "rotation:x", leg_start_x, 0.20)
+        if is_instance_valid(torso):
+            var torso_start_x := torso.rotation.x
+            var lean := create_tween()
+            lean.tween_property(torso, "rotation:x", 0.18, 0.10)
+            lean.tween_property(torso, "rotation:x", torso_start_x, 0.20)
+        return
+
     var start := limb.rotation.z
-    var reach := -1.48 if move_name != "KICK" else -1.05
+    var reach := -1.65 if move_name == "SPECIAL" else -1.48
     var tw := create_tween()
     tw.tween_property(limb, "rotation:z", reach, 0.08)
     tw.tween_property(limb, "rotation:z", start, 0.17)
+    if is_instance_valid(torso):
+        var torso_start_z := torso.rotation.z
+        var lean := create_tween()
+        lean.tween_property(torso, "rotation:z", torso_start_z - 0.12, 0.08)
+        lean.tween_property(torso, "rotation:z", torso_start_z, 0.17)
 
 func _burst_effect(pos: Vector3) -> void:
     var fx := MeshInstance3D.new()
