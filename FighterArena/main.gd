@@ -570,8 +570,14 @@ func _process(delta: float) -> void:
 
     if special_cooldown > 0.0:
         special_cooldown = maxf(0.0, special_cooldown - delta)
+        if is_instance_valid(special_button):
+            special_button.text = "SPECIAL " + str(ceili(special_cooldown)) + "s"
         if special_cooldown <= 0.0 and not round_over:
+            if is_instance_valid(special_button):
+                special_button.text = "SPECIAL"
             _set_status("SPECIAL READY")
+    elif is_instance_valid(special_button) and not round_over:
+        special_button.text = "SPECIAL"
 
     if round_over:
         return
