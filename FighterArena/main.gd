@@ -611,18 +611,29 @@ func _set_status(value: String) -> void:
 
 func _finish(won: bool) -> void:
     round_over = true
+    joystick_active = false
+    _reset_joystick()
     var p: Button = control_buttons["punch"] as Button
     var k: Button = control_buttons["kick"] as Button
     p.pressed.disconnect(_punch)
     k.pressed.disconnect(_kick)
+
+    # Freeze combat-only controls after the round so they cannot overwrite
+    # the victory/defeat message or consume inputs behind the result screen.
+    var guard: Button = control_buttons["block"] as Button
+    guard.disabled = true
+    if is_instance_valid(special_button):
+        special_button.disabled = true
+        special_button.text = "SPECIAL"
+
     if won:
-        _set_status("VICTORY!  •  NEXT ROUND")
+        _set_status("VICTORY!  •  TAP NEXT ROUND")
         p.text = "NEXT ROUND"
         k.text = "NEXT ROUND"
         p.pressed.connect(_next_round)
         k.pressed.connect(_next_round)
     else:
-        _set_status("DEFEAT  •  RETRY ROUND " + str(campaign_round))
+        _set_status("DEFEAT  •  TAP RETRY")
         p.text = "RETRY"
         k.text = "RETRY"
         p.pressed.connect(_restart)
