@@ -22,6 +22,10 @@ var dragging_button: Button
 var drag_start := Vector2.ZERO
 var drag_origin := Vector2.ZERO
 var control_buttons: Dictionary = {}
+var arena_camera: Camera3D
+var camera_shake_time := 0.0
+var combo_count := 0
+var combo_timer := 0.0
 
 var hud: CanvasLayer
 var root_ui: Control
@@ -188,12 +192,12 @@ func _build_world() -> void:
             cap.material_override = _glow_mat(Color("#13dfff") if x < 0 else Color("#b72fff"))
             add_child(cap)
 
-    var camera := Camera3D.new()
-    camera.position = Vector3(0, 5.9, 12.4)
-    camera.rotation_degrees = Vector3(-25, 0, 0)
-    camera.fov = 48
-    add_child(camera)
-    camera.make_current()
+    arena_camera = Camera3D.new()
+    arena_camera.position = Vector3(0, 5.9, 12.4)
+    arena_camera.rotation_degrees = Vector3(-25, 0, 0)
+    arena_camera.fov = 48
+    add_child(arena_camera)
+    arena_camera.make_current()
 
 func _glow_mat(color: Color) -> StandardMaterial3D:
     var material := StandardMaterial3D.new()
@@ -260,6 +264,12 @@ func _make_fighter(label: String, primary: Color, secondary: Color, pos: Vector3
     for side in [-1.0, 1.0]:
         var shoulder := SphereMesh.new()
         _piece(root, "Shoulder" + str(side), shoulder, Vector3(0.63 * side, 1.68, 0), primary.lightened(0.18), Vector3(0.28, 0.25, 0.28))
+        var forearm := _piece(root, "ForearmArmor" + str(side), CapsuleMesh.new(), Vector3(0.68 * side, 1.15, -0.12), secondary, Vector3(0.29, 0.25, 0.29))
+        forearm.rotation.z = -0.25 * side
+    _piece(root, "ChestCore", SphereMesh.new(), Vector3(0, 1.50, -0.37), Color("#10202d"), Vector3(0.18, 0.18, 0.07))
+    _piece(root, "ChestGlow", SphereMesh.new(), Vector3(0, 1.50, -0.425), Color("#5de1ff") if label == "PLAYER" else Color("#ff3f72"), Vector3(0.09, 0.09, 0.035))
+    _piece(root, "LeftKnee", SphereMesh.new(), Vector3(-0.25, 0.48, -0.19), secondary, Vector3(0.23, 0.19, 0.12))
+    _piece(root, "RightKnee", SphereMesh.new(), Vector3(0.25, 0.48, -0.19), secondary, Vector3(0.23, 0.19, 0.12))
     return root
 
 func _build_hud() -> void:
@@ -479,10 +489,19 @@ func _player_attack(damage: float, move_name: String, limb: Node3D) -> void:
         return
     _attack_animation(limb, move_name)
     if absf(enemy.position.x - player.position.x) <= 3.15:
+        if combo_timer > 0.0:
+            combo_count += 1
+        else:
+            combo_count = 1
+        combo_timer = 1.35
+        var combo_bonus := minf(float(maxi(0, combo_count - 1)) * 0.08, 0.4)
+        damage *= 1.0 + combo_bonus
+        camera_shake_time = 0.18 if move_name != "SPECIAL" else 0.32
+        _burst_effect(enemy.position + Vector3(0, 1.25, -0.4))
         enemy_hp = maxf(0.0, enemy_hp - damage)
         enemy_bar.value = enemy_hp
         _flash(enemy)
-        _set_status(move_name + " HIT!  -" + str(int(damage)))
+        _set_status(move_name + " HIT!  -" + str(int(damage)) + ("  •  " + str(combo_count) + " HIT COMBO" if combo_count > 1 else ""))
         if enemy_hp <= 0:
             _finish(true)
     else:
@@ -503,7 +522,7 @@ func _burst_effect(pos: Vector3) -> void:
     fx.mesh = mesh
     fx.position = pos
     fx.scale = Vector3(0.18, 0.18, 0.18)
-    fx.material_override = _mat(Color("#5de1ff"), 0.1, 0.15)
+    fx.material_override = _glow_mat(Color("#5de1ff"))
     add_child(fx)
     var tw := create_tween()
     tw.tween_property(fx, "scale", Vector3(1.7, 1.7, 1.7), 0.18)
@@ -516,6 +535,19 @@ func _flash(target: Node3D) -> void:
     tw.tween_property(target, "scale", Vector3.ONE, 0.14)
 
 func _process(delta: float) -> void:
+    if combo_timer > 0.0:
+        combo_timer = maxf(0.0, combo_timer - delta)
+        if combo_timer <= 0.0:
+            combo_count = 0
+    if camera_shake_time > 0.0 and is_instance_valid(arena_camera):
+        camera_shake_time = maxf(0.0, camera_shake_time - delta)
+        var shake_strength := 0.075 if camera_shake_time > 0.1 else 0.035
+        arena_camera.position.x = randf_range(-shake_strength, shake_strength)
+        arena_camera.position.y = 5.9 + randf_range(-shake_strength, shake_strength)
+    elif is_instance_valid(arena_camera):
+        arena_camera.position.x = move_toward(arena_camera.position.x, 0.0, delta * 0.8)
+        arena_camera.position.y = move_toward(arena_camera.position.y, 5.9, delta * 0.8)
+
     if special_cooldown > 0.0:
         special_cooldown = maxf(0.0, special_cooldown - delta)
         if special_cooldown <= 0.0 and not round_over:
