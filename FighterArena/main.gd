@@ -26,6 +26,7 @@ var arena_camera: Camera3D
 var camera_shake_time := 0.0
 var combo_count := 0
 var combo_timer := 0.0
+var player_attacking := false
 
 var hud: CanvasLayer
 var root_ui: Control
@@ -520,10 +521,25 @@ func _special() -> void:
     _burst_effect(enemy.position + Vector3(0, 1.25, -0.4))
 
 func _player_attack(damage: float, move_name: String, limb: Node3D) -> void:
-    if round_over:
+    if round_over or player_attacking:
         return
+    player_attacking = true
+    _face_fighters()
+    # Automatically close the gap before striking; the player visibly lunges forward.
+    var attack_x := clampf(enemy.position.x - 1.72, -ARENA_LIMIT, 0.5)
+    var approach := create_tween()
+    approach.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    approach.tween_property(player, "position:x", attack_x, 0.18)
+    approach.tween_callback(_perform_player_strike.bind(damage, move_name, limb))
+
+func _perform_player_strike(damage: float, move_name: String, limb: Node3D) -> void:
+    if round_over or not is_instance_valid(player) or not is_instance_valid(enemy):
+        player_attacking = false
+        return
+    _face_fighters()
     _attack_animation(limb, move_name)
-    if absf(enemy.position.x - player.position.x) <= 3.15:
+    var gap := absf(enemy.position.x - player.position.x)
+    if gap <= 3.35:
         if combo_timer > 0.0:
             combo_count += 1
         else:
@@ -536,40 +552,67 @@ func _player_attack(damage: float, move_name: String, limb: Node3D) -> void:
         enemy_hp = maxf(0.0, enemy_hp - damage)
         enemy_bar.value = enemy_hp
         _flash(enemy)
+        # A visible hit reaction: rival recoils away from the player.
+        var recoil_x := clampf(enemy.position.x + 0.42, 0.6, ARENA_LIMIT)
+        var recoil := create_tween()
+        recoil.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        recoil.tween_property(enemy, "position:x", recoil_x, 0.13)
         _set_status(move_name + " HIT!  -" + str(int(damage)) + ("  •  " + str(combo_count) + " HIT COMBO" if combo_count > 1 else ""))
         if enemy_hp <= 0:
             _finish(true)
     else:
-        _set_status("TOO FAR — MOVE CLOSER")
+        _set_status("MISS — GET CLOSER")
+    var retreat := create_tween()
+    retreat.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+    retreat.tween_property(player, "position:x", clampf(player.position.x - 0.24, -ARENA_LIMIT, 0.5), 0.18)
+    retreat.tween_callback(func(): player_attacking = false)
 
 func _attack_animation(limb: Node3D, move_name: String) -> void:
     if not is_instance_valid(limb):
         return
-
-    var torso: Node3D = limb.get_parent().get_node_or_null("Torso") as Node3D
+    var root := limb.get_parent() as Node3D
+    var torso := root.get_node_or_null("Torso") as Node3D
     if move_name == "KICK":
-        # Rotate the leg forward, rather than sideways, for a readable kick.
-        var leg_start_x := limb.rotation.x
+        var leg_start := limb.position
+        var leg_rot := limb.rotation
+        var boot := root.get_node_or_null("RightBoot") as Node3D
+        var boot_start := boot.position if is_instance_valid(boot) else Vector3.ZERO
         var kick := create_tween()
-        kick.tween_property(limb, "rotation:x", -0.95, 0.10)
-        kick.tween_property(limb, "rotation:x", leg_start_x, 0.20)
+        kick.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        kick.tween_property(limb, "position", leg_start + Vector3(0.0, 0.12, -0.68), 0.10)
+        kick.parallel().tween_property(limb, "rotation:x", -0.95, 0.10)
+        if is_instance_valid(boot):
+            kick.parallel().tween_property(boot, "position", boot_start + Vector3(0.0, 0.1, -0.85), 0.10)
+        kick.tween_property(limb, "position", leg_start, 0.16)
+        kick.parallel().tween_property(limb, "rotation", leg_rot, 0.16)
+        if is_instance_valid(boot):
+            kick.parallel().tween_property(boot, "position", boot_start, 0.16)
         if is_instance_valid(torso):
-            var torso_start_x := torso.rotation.x
-            var lean := create_tween()
-            lean.tween_property(torso, "rotation:x", 0.18, 0.10)
-            lean.tween_property(torso, "rotation:x", torso_start_x, 0.20)
+            var torso_rot := torso.rotation
+            kick.parallel().tween_property(torso, "rotation:x", 0.18, 0.10)
+            kick.tween_property(torso, "rotation", torso_rot, 0.16)
         return
 
-    var start := limb.rotation.z
-    var reach := -1.65 if move_name == "SPECIAL" else -1.48
-    var tw := create_tween()
-    tw.tween_property(limb, "rotation:z", reach, 0.08)
-    tw.tween_property(limb, "rotation:z", start, 0.17)
+    var arm_start := limb.position
+    var arm_rot := limb.rotation
+    var glove := root.get_node_or_null("RightGlove") as Node3D
+    var glove_start := glove.position if is_instance_valid(glove) else Vector3.ZERO
+    var torso_rot := torso.rotation if is_instance_valid(torso) else Vector3.ZERO
+    var reach := -0.92 if move_name == "SPECIAL" else -0.72
+    var punch := create_tween()
+    punch.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    punch.tween_property(limb, "position", arm_start + Vector3(0.0, -0.12, -0.72), 0.08)
+    punch.parallel().tween_property(limb, "rotation:z", reach, 0.08)
+    if is_instance_valid(glove):
+        punch.parallel().tween_property(glove, "position", glove_start + Vector3(0.0, -0.12, -0.95), 0.08)
     if is_instance_valid(torso):
-        var torso_start_z := torso.rotation.z
-        var lean := create_tween()
-        lean.tween_property(torso, "rotation:z", torso_start_z - 0.12, 0.08)
-        lean.tween_property(torso, "rotation:z", torso_start_z, 0.17)
+        punch.parallel().tween_property(torso, "rotation:y", torso_rot.y + 0.18, 0.08)
+    punch.tween_property(limb, "position", arm_start, 0.16)
+    punch.parallel().tween_property(limb, "rotation", arm_rot, 0.16)
+    if is_instance_valid(glove):
+        punch.parallel().tween_property(glove, "position", glove_start, 0.16)
+    if is_instance_valid(torso):
+        punch.parallel().tween_property(torso, "rotation", torso_rot, 0.16)
 
 func _burst_effect(pos: Vector3) -> void:
     var fx := MeshInstance3D.new()
